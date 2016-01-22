@@ -229,8 +229,6 @@ class Client
         if (isset($this->lastResponseHeaders['Location'][0])) {
             $this->regLocation = $this->lastResponseHeaders['Location'][0];
         }
-
-        //dump($response->getStatusCode(), $response->getBody()->getContents(), $this->lastResponseHeaders);
     }
 
     /**
