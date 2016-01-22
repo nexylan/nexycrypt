@@ -4,6 +4,9 @@ namespace Nexy\NexyCrypt;
 
 use Base64Url\Base64Url;
 use GuzzleHttp\Exception\ClientException;
+use Nexy\NexyCrypt\Authorization\Authorization;
+use Nexy\NexyCrypt\Authorization\Challenge\ChallengeFactory;
+use Nexy\NexyCrypt\Authorization\Identifier;
 use Psr\Http\Message\ResponseInterface;
 
 /**
@@ -22,24 +25,33 @@ class Client
     private $endpoint = 'https://acme-v01.api.letsencrypt.org/';
 
     /**
+     * @var PrivateKey
+     */
+    private $privateKey = null;
+
+    /**
      * @var string
      */
     private $privateKeyPath;
 
     /**
-     * @var resource
-     */
-    private $privateKey;
-
-    /**
-     * @var array
-     */
-    private $privateKeyDetails;
-
-    /**
      * @var string[][]
      */
     private $lastResponseHeaders = [];
+
+    /**
+     * Associative array of Let's Encrypt links.
+     *
+     * Updated on each request
+     *
+     * @var string[]
+     */
+    private $links = [];
+
+    /**
+     * @var string
+     */
+    private $regLocation;
 
     /**
      * @param string $privateKeyPath
@@ -66,32 +78,71 @@ class Client
 
     /**
      * Generates or read privates key and starts registration.
+     *
+     * CAUTION: Be using this method, we assume that you agree with Let's Encrypt terms of service.
+     * See https://letsencrypt.org/repository/ -> Let’s Encrypt Subscriber Agreement
      */
-    public function init()
+    public function register()
     {
-        if (is_file($this->privateKeyPath)) {
-            $this->privateKey = openssl_pkey_get_private('file://'.$this->privateKeyPath);
-        } else {
-            $this->privateKey = openssl_pkey_new();
-            openssl_pkey_export($this->privateKey, $privateKeyOutput);
-            file_put_contents($this->privateKeyPath, $privateKeyOutput);
+        if (null === $this->privateKey) {
+            $this->privateKey = new PrivateKey($this->privateKeyPath);
         }
-        $this->privateKeyDetails = openssl_pkey_get_details($this->privateKey);
 
         try {
-            $this->signedPostRequest('acme/new-reg', [
-                'resource' => 'new-reg',
+            $this->signedPostRequest(null === $this->regLocation ? 'acme/new-reg' : $this->regLocation, [
+                'resource' => null === $this->regLocation ? 'new-reg' : 'reg',
             ]);
         } catch (ClientException $e) {
-            if (409 !== $e->getResponse()->getStatusCode()) {
+            if (409 === $e->getResponse()->getStatusCode()) {
+                // Registration location is now saved, try init again.
+                $this->register();
+            } else {
                 throw $e;
             }
         }
     }
 
+    public function agreeTerms()
+    {
+        $this->signedPostRequest($this->regLocation, [
+            'resource' => 'reg',
+            'agreement' => $this->links['terms-of-service'],
+        ]);
+    }
+
+    /**
+     * @param string $domain
+     *
+     * @return Authorization
+     */
+    public function authorize($domain)
+    {
+        $response = $this->signedPostRequest('acme/new-authz', [
+            'resource' => 'new-authz',
+            'identifier' => [
+                'type' => 'dns',
+                'value' => $domain,
+            ],
+        ]);
+
+        $data = json_decode($response->getBody()->getContents(), true);
+
+        $authorization = new Authorization();
+
+        $authorization->setIdentifier(new Identifier($data['identifier']['type'], $data['identifier']['value']));
+        $authorization->setStatus($data['status']);
+        $authorization->setExpires(new \DateTime(substr($data['expires'], 0, -4)));
+        foreach ($data['challenges'] as $challengeData) {
+            $challenge = ChallengeFactory::create($challengeData['type'], $challengeData, $this->privateKey);
+            $authorization->addChallenge($challenge);
+        }
+
+        return $authorization;
+    }
+
     /**
      * @param string $uri
-     * @param array $payload
+     * @param array  $payload
      *
      * @return ResponseInterface
      */
@@ -101,8 +152,8 @@ class Client
             'alg' => 'RS256',
             'jwk' => [
                 'kty' => 'RSA',
-                'n' => Base64Url::encode($this->privateKeyDetails['rsa']['n']),
-                'e' => Base64Url::encode($this->privateKeyDetails['rsa']['e']),
+                'n' => Base64Url::encode($this->privateKey->getDetails()['rsa']['n']),
+                'e' => Base64Url::encode($this->privateKey->getDetails()['rsa']['e']),
             ],
         ];
 
@@ -112,8 +163,7 @@ class Client
         $payload64 = Base64Url::encode(json_encode($payload, JSON_UNESCAPED_SLASHES));
         $protected64 = Base64Url::encode(json_encode($protected));
 
-        openssl_sign($protected64.'.'.$payload64, $signed, $this->privateKey, 'SHA256');
-        $signed64 = Base64Url::encode($signed);
+        $signed64 = Base64Url::encode($this->privateKey->sign($protected64.'.'.$payload64));
 
         return $this->request('POST', $uri, [
             'json' => [
@@ -136,11 +186,38 @@ class Client
      */
     private function request($method, $uri, array $options = [])
     {
-        $response = $this->httpClient->request($method, $uri, $options);
+        try {
+            $response = $this->httpClient->request($method, $uri, $options);
+        } catch (ClientException $e) {
+            $response = $e->getResponse();
 
-        $this->lastResponseHeaders = $response->getHeaders();
+            throw $e;
+        } finally {
+            if (isset($response)) {
+                $this->updateHeaders($response);
+            }
+        }
 
         return $response;
+    }
+
+    private function updateHeaders(ResponseInterface $response)
+    {
+        $this->lastResponseHeaders = $response->getHeaders();
+
+        if (isset($this->lastResponseHeaders['Link'])) {
+            foreach ($this->lastResponseHeaders['Link'] as $link) {
+                preg_match('/^<(\S+)>;rel="(\S+)"$/', $link, $matches);
+                $this->links[$matches[2]] = $matches[1];
+            }
+        }
+
+        // Keep registration location for terms agreement.
+        if (isset($this->lastResponseHeaders['Location'][0])) {
+            $this->regLocation = $this->lastResponseHeaders['Location'][0];
+        }
+
+        //dump($response->getStatusCode(), $response->getBody()->getContents(), $this->lastResponseHeaders);
     }
 
     /**
