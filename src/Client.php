@@ -6,6 +6,7 @@ use Base64Url\Base64Url;
 use GuzzleHttp\Exception\ClientException;
 use Nexy\NexyCrypt\Authorization\Authorization;
 use Nexy\NexyCrypt\Authorization\Challenge\ChallengeFactory;
+use Nexy\NexyCrypt\Authorization\Challenge\ChallengeInterface;
 use Nexy\NexyCrypt\Authorization\Identifier;
 use Psr\Http\Message\ResponseInterface;
 
@@ -125,19 +126,31 @@ class Client
             ],
         ]);
 
-        $data = json_decode($response->getBody()->getContents(), true);
+        return $this->getAuthorization(json_decode($response->getBody()->getContents(), true));
+    }
 
-        $authorization = new Authorization();
+    /**
+     * @param ChallengeInterface $challenge
+     *
+     * @return bool
+     */
+    public function verifyChallenge(ChallengeInterface $challenge)
+    {
+        $this->signedPostRequest($challenge->getUri(), [
+            'resource' => 'challenge',
+            'type' => $challenge->getType(),
+            'keyAuthorization' => $challenge->getAuthorizationKey(),
+            'token' => $challenge->getToken(),
+        ]);
 
-        $authorization->setIdentifier(new Identifier($data['identifier']['type'], $data['identifier']['value']));
-        $authorization->setStatus($data['status']);
-        $authorization->setExpires(new \DateTime(substr($data['expires'], 0, -4)));
-        foreach ($data['challenges'] as $challengeData) {
-            $challenge = ChallengeFactory::create($challengeData['type'], $challengeData, $this->privateKey);
-            $authorization->addChallenge($challenge);
-        }
+        $authorization = null;
+        do {
+            usleep(100);
+            $response = $this->request('GET', $this->links['up']);
+            $authorization = $this->getAuthorization(json_decode($response->getBody()->getContents(), true), false);
+        } while ('valid' !== $authorization->getStatus());
 
-        return $authorization;
+        return true;
     }
 
     /**
@@ -230,5 +243,29 @@ class Client
         }
 
         return $this->lastResponseHeaders['Replay-Nonce'][0];
+    }
+
+    /**
+     * @param array $data
+     * @param bool  $withChallenges
+     *
+     * @return Authorization
+     */
+    private function getAuthorization(array $data, $withChallenges = true)
+    {
+        $authorization = new Authorization();
+
+        $authorization->setIdentifier(new Identifier($data['identifier']['type'], $data['identifier']['value']));
+        $authorization->setStatus($data['status']);
+        $authorization->setExpires(new \DateTime(substr($data['expires'], 0, -4)));
+
+        if (true === $withChallenges) {
+            foreach ($data['challenges'] as $challengeData) {
+                $challenge = ChallengeFactory::create($challengeData['type'], $challengeData, $this->privateKey);
+                $authorization->addChallenge($challenge);
+            }
+        }
+
+        return $authorization;
     }
 }

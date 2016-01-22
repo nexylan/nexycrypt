@@ -38,4 +38,16 @@ class ChallengeCollection extends ArrayCollection
             return $challenge instanceof TlsSni01Challenge;
         })->first();
     }
+
+    /**
+     * @param string $type
+     *
+     * @return ChallengeInterface
+     */
+    public function getOfType($type)
+    {
+        return $this->filter(function (ChallengeInterface $challenge) use ($type) {
+            return $type === $challenge->getType();
+        })->first();
+    }
 }

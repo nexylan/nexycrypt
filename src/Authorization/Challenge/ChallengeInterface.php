@@ -45,4 +45,14 @@ interface ChallengeInterface
      * @param string $token
      */
     public function setToken($token);
+
+    /**
+     * @return string
+     */
+    public function getAuthorizationKey();
+
+    /**
+     * @param string $authorizationKey
+     */
+    public function setAuthorizationKey($authorizationKey);
 }

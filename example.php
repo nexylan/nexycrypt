@@ -32,4 +32,6 @@ if (2 === $step) {
     /** @var Http01Challenge $challenge */
     $challenge = unserialize(file_get_contents('challenge'));
     dump($challenge);
+
+    $client->verifyChallenge($challenge);
 }
