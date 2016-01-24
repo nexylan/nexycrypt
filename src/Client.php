@@ -154,6 +154,75 @@ class Client
     }
 
     /**
+     * Generates private, public key and CSR for provided domains.
+     *
+     * @param string[] $domains
+     *
+     * @return Certificate
+     */
+    public function generateCertificate(array $domains)
+    {
+        $certificate = new Certificate();
+        $privateKey = openssl_pkey_new();
+        $privateKeyDetails = openssl_pkey_get_details($privateKey);
+        openssl_pkey_export($privateKey, $privateKeyOutput);
+
+        $certificate->setPublic($privateKeyDetails['key']);
+        $certificate->setPrivate($privateKeyOutput);
+
+        $csr = openssl_csr_new([
+            'CN' => $domains[0],
+            // TODO: Make country configurable
+            'ST' => 'France',
+            'C' => 'FR',
+            'O' => 'Unknown',
+        ], $privateKey, [
+            'digest_alg' => 'sha256',
+        ]);
+        openssl_csr_export($csr, $csrOut);
+        $certificate->setCsr($csrOut);
+
+        return $certificate;
+    }
+
+    /**
+     * Asks new-cert on Let's Encrypt to get and generate signed certificates.
+     *
+     * FullChain, cert and chain keys will be provider.
+     * Client::generateCertificate method MUST be called before this one.
+     *
+     * @param Certificate $certificate
+     *
+     * @return Certificate
+     */
+    public function signCertificate(Certificate $certificate)
+    {
+        $this->signedPostRequest('acme/new-cert', [
+            'resource' => 'new-cert',
+            'csr' => Base64Url::encode($certificate->getRawCsr()),
+        ]);
+
+        $certLocation = $this->lastResponseHeaders['Location'][0];
+
+        do {
+            $response = $this->request('GET', $certLocation);
+        } while (200 !== $response->getStatusCode());
+
+        $certificates = [];
+        $certificates[] = $this->parsePemFromBody($response->getBody()->getContents());
+
+        // Get chain
+        $response = $this->request('GET', $this->links['up']);
+        $certificates[] = $this->parsePemFromBody($response->getBody()->getContents());
+
+        $certificate->setFullChain(implode("\n", $certificates));
+        $certificate->setCert(array_shift($certificates));
+        $certificate->setChain(implode("\n", $certificates));
+
+        return $certificate;
+    }
+
+    /**
      * @param string $uri
      * @param array  $payload
      *
@@ -265,5 +334,17 @@ class Client
         }
 
         return $authorization;
+    }
+
+    /**
+     * @param string $body The API response body
+     *
+     * @return string
+     */
+    private function parsePemFromBody($body)
+    {
+        $pem = chunk_split(base64_encode($body), 64, "\n");
+
+        return "-----BEGIN CERTIFICATE-----\n".$pem."-----END CERTIFICATE-----\n";
     }
 }

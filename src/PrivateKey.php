@@ -33,18 +33,9 @@ final class PrivateKey
             $this->key = openssl_pkey_get_private('file://'.$this->path);
         } else {
             $this->key = openssl_pkey_new();
-            openssl_pkey_export($this->key, $privateKeyOutput);
-            file_put_contents($this->path, $privateKeyOutput);
+            file_put_contents($this->path, $this->getOutput());
         }
         $this->details = openssl_pkey_get_details($this->key);
-    }
-
-    /**
-     * @return array
-     */
-    public function getDetails()
-    {
-        return $this->details;
     }
 
     /**
@@ -57,5 +48,31 @@ final class PrivateKey
         openssl_sign($data, $signed, $this->key, 'SHA256');
 
         return $signed;
+    }
+
+    /**
+     * @return string
+     */
+    public function getOutput()
+    {
+        openssl_pkey_export($this->key, $privateKeyOutput);
+
+        return $privateKeyOutput;
+    }
+
+    /**
+     * @return resource
+     */
+    public function getKey()
+    {
+        return $this->key;
+    }
+
+    /**
+     * @return array
+     */
+    public function getDetails()
+    {
+        return $this->details;
     }
 }
