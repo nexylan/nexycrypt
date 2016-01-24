@@ -79,9 +79,6 @@ class Client
 
     /**
      * Generates or read privates key and starts registration.
-     *
-     * CAUTION: Be using this method, we assume that you agree with Let's Encrypt terms of service.
-     * See https://letsencrypt.org/repository/ -> Let’s Encrypt Subscriber Agreement
      */
     public function register()
     {
@@ -103,6 +100,9 @@ class Client
         }
     }
 
+    /**
+     * See https://letsencrypt.org/repository/ -> Let’s Encrypt Subscriber Agreement.
+     */
     public function agreeTerms()
     {
         $this->signedPostRequest($this->regLocation, [
