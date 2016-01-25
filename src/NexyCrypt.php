@@ -176,8 +176,6 @@ class NexyCrypt
         $csrConf = tmpfile();
         $csrConfPath = stream_get_meta_data($csrConf)['uri'];
 
-        dump($san, $csrConfPath);
-
         // @see http://stackoverflow.com/a/9710863/1731473
         fwrite($csrConf,
 '[ req ]
