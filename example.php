@@ -51,10 +51,6 @@ try {
 
     if (2 === $step) {
         foreach ($domains as $domain) {
-            $authorization = $client->authorize($domain);
-
-            $challenge = $authorization->getChallenges()->getHttp01();
-
             /** @var Http01Challenge $challenge */
             $challenge = unserialize(file_get_contents('public/'.$domain.'/challenge'));
 
