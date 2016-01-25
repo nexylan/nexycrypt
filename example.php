@@ -49,10 +49,10 @@ if (2 === $step) {
     $certificate = $client->signCertificate($certificate);
 
     @mkdir('cert');
-    file_put_contents('cert/private.pem', $certificate->getPrivate());
-    file_put_contents('cert/public.pem', $certificate->getPublic());
+    file_put_contents('cert/privkey.pem', $certificate->getPrivkey());
+    file_put_contents('cert/pubkey.pem', $certificate->getPubkey());
     file_put_contents('cert/csr', $certificate->getCsr());
-    file_put_contents('cert/fullchain.pem', $certificate->getFullChain());
+    file_put_contents('cert/fullchain.pem', $certificate->getFullchain());
     file_put_contents('cert/chain.pem', $certificate->getChain());
     file_put_contents('cert/cert.pem', $certificate->getCert());
 }

@@ -167,8 +167,8 @@ class Client
         $privateKeyDetails = openssl_pkey_get_details($privateKey);
         openssl_pkey_export($privateKey, $privateKeyOutput);
 
-        $certificate->setPublic($privateKeyDetails['key']);
-        $certificate->setPrivate($privateKeyOutput);
+        $certificate->setPubkey($privateKeyDetails['key']);
+        $certificate->setPrivkey($privateKeyOutput);
 
         $csr = openssl_csr_new([
             'CN' => $domains[0],
@@ -215,7 +215,7 @@ class Client
         $response = $this->request('GET', $this->links['up']);
         $certificates[] = $this->parsePemFromBody($response->getBody()->getContents());
 
-        $certificate->setFullChain(implode("\n", $certificates));
+        $certificate->setFullchain(implode("\n", $certificates));
         $certificate->setCert(array_shift($certificates));
         $certificate->setChain(implode("\n", $certificates));
 

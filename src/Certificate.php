@@ -10,20 +10,20 @@ final class Certificate
     /**
      * Private generated key.
      *
-     * private.pem
+     * privkey.pem
      *
      * @var string
      */
-    private $private;
+    private $privkey;
 
     /**
      * Public generated key.
      *
-     * public.pem
+     * pubkey.pem
      *
      * @var string
      */
-    private $public;
+    private $pubkey;
 
     /**
      * Generated CSR.
@@ -40,7 +40,7 @@ final class Certificate
      *
      * @var string
      */
-    private $fullChain;
+    private $fullchain;
 
     /**
      * Provided certificate's cert.
@@ -63,33 +63,33 @@ final class Certificate
     /**
      * @return string
      */
-    public function getPrivate()
+    public function getPrivkey()
     {
-        return $this->private;
+        return $this->privkey;
     }
 
     /**
-     * @param string $private
+     * @param string $privkey
      */
-    public function setPrivate($private)
+    public function setPrivkey($privkey)
     {
-        $this->private = $private;
+        $this->privkey = $privkey;
     }
 
     /**
      * @return string
      */
-    public function getPublic()
+    public function getPubkey()
     {
-        return $this->public;
+        return $this->pubkey;
     }
 
     /**
-     * @param string $public
+     * @param string $pubkey
      */
-    public function setPublic($public)
+    public function setPubkey($pubkey)
     {
-        $this->public = $public;
+        $this->pubkey = $pubkey;
     }
 
     /**
@@ -127,17 +127,17 @@ final class Certificate
     /**
      * @return string
      */
-    public function getFullChain()
+    public function getFullchain()
     {
-        return $this->fullChain;
+        return $this->fullchain;
     }
 
     /**
-     * @param string $fullChain
+     * @param string $fullchain
      */
-    public function setFullChain($fullChain)
+    public function setFullchain($fullchain)
     {
-        $this->fullChain = $fullChain;
+        $this->fullchain = $fullchain;
     }
 
     /**
