@@ -35,8 +35,7 @@ final class Certificate
     private $csr;
 
     /**
-     *
-     * fullchain.pem
+     * fullchain.pem.
      *
      * @var string
      */

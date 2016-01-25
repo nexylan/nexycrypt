@@ -10,6 +10,7 @@
  * # Get the certificate files on cert folder
  */
 
+use GuzzleHttp\Exception\ClientException;
 use Nexy\NexyCrypt\Authorization\Challenge\Http01Challenge;
 use Nexy\NexyCrypt\Client;
 
@@ -19,37 +20,61 @@ if ($argc < 3) {
     echo 'You have to pass domain and step arguments.'.PHP_EOL;
     exit(1);
 }
-$domain = $argv[1];
-$step = intval($argv[2]);
+
+$domains = [];
+for ($a = 1; $a < $argc - 1; ++$a) {
+    $domains[] = $argv[$a];
+}
+$step = intval($argv[$a]);
 
 // First commented line is for production.
 //$client = new Client();
 $client = new Client(null, 'https://acme-staging.api.letsencrypt.org/directory');
 
-$client->register();
-$client->agreeTerms();
+try {
+    $client->register();
+    $client->agreeTerms();
 
-if (1 === $step) {
-    $authorization = $client->authorize($argv[1]);
+    if (1 === $step) {
+        @mkdir('public');
 
-    $challenge = $authorization->getChallenges()->getHttp01();
+        foreach ($domains as $domain) {
+            $authorization = $client->authorize($domain);
 
-    @mkdir('public');
-    file_put_contents('public/'.$challenge->getFileName(), $challenge->getFileContent());
-    file_put_contents('challenge', serialize($challenge));
-}
+            $challenge = $authorization->getChallenges()->getHttp01();
 
-if (2 === $step) {
-    /** @var Http01Challenge $challenge */
-    $challenge = unserialize(file_get_contents('challenge'));
-
-    $client->verifyChallenge($challenge);
-
-    $certificate = $client->generateCertificate([$domain]);
-    $certificate = $client->signCertificate($certificate);
-
-    @mkdir('cert');
-    foreach ($certificate->getFilesArray() as $filename => $content) {
-        file_put_contents('cert/'.$filename, $content);
+            @mkdir('public/'.$domain);
+            file_put_contents('public/'.$domain.'/'.$challenge->getFileName(), $challenge->getFileContent());
+            file_put_contents('public/'.$domain.'/challenge', serialize($challenge));
+        }
     }
+
+    if (2 === $step) {
+        foreach ($domains as $domain) {
+            $authorization = $client->authorize($domain);
+
+            $challenge = $authorization->getChallenges()->getHttp01();
+
+            /** @var Http01Challenge $challenge */
+            $challenge = unserialize(file_get_contents('public/'.$domain.'/challenge'));
+
+            $client->verifyChallenge($challenge);
+        }
+
+        @mkdir('cert');
+
+        $certificate = $client->generateCertificate($domains);
+        foreach ($certificate->getFilesArray() as $filename => $content) {
+            file_put_contents('cert/'.$filename, $content);
+        }
+
+        $certificate = $client->signCertificate($certificate);
+        foreach ($certificate->getFilesArray() as $filename => $content) {
+            file_put_contents('cert/'.$filename, $content);
+        }
+    }
+} catch (ClientException $e) {
+    dump(json_decode($e->getResponse()->getBody()->getContents(), true));
+
+    exit(1);
 }

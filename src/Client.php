@@ -170,6 +170,25 @@ class Client
         $certificate->setPubkey($privateKeyDetails['key']);
         $certificate->setPrivkey($privateKeyOutput);
 
+        $san = implode(',', array_map(function ($dns) {
+            return 'DNS:'.$dns;
+        }, $domains));
+        $csrConf = tmpfile();
+        $csrConfPath = stream_get_meta_data($csrConf)['uri'];
+
+        dump($san, $csrConfPath);
+
+        // @see http://stackoverflow.com/a/9710863/1731473
+        fwrite($csrConf,
+'[ req ]
+distinguished_name = req_distinguished_name
+req_extensions = v3_req
+[req_distinguished_name]
+[v3_req]
+subjectAltName = '.$san.'
+[v3_ca]
+');
+
         $csr = openssl_csr_new([
             'CN' => $domains[0],
             // TODO: Make country configurable
@@ -177,10 +196,12 @@ class Client
             'C' => 'FR',
             'O' => 'Unknown',
         ], $privateKey, [
+            'config' => $csrConfPath,
             'digest_alg' => 'sha256',
         ]);
         openssl_csr_export($csr, $csrOut);
         $certificate->setCsr($csrOut);
+        fclose($csrConf);
 
         return $certificate;
     }
