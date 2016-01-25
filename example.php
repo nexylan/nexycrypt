@@ -29,7 +29,7 @@ $step = intval($argv[$a]);
 
 // First commented line is for production.
 //$client = new Client();
-$client = new Client(null, 'https://acme-staging.api.letsencrypt.org/directory');
+$client = new Client(null, 'https://acme-staging.api.letsencrypt.org/');
 
 try {
     $client->register();
