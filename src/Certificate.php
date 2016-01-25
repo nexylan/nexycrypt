@@ -60,6 +60,16 @@ final class Certificate
     private $chain;
 
     /**
+     * @var \DateTime
+     */
+    private $validFrom;
+
+    /**
+     * @var \DateTime
+     */
+    private $validTo;
+
+    /**
      * Returns associative array with filename and content.
      *
      * @return string[]
@@ -170,6 +180,12 @@ final class Certificate
     public function setCert($cert)
     {
         $this->cert = $cert;
+
+        $res = openssl_x509_parse($this->cert);
+        $this->validFrom = new \DateTime();
+        $this->validFrom->setTimestamp($res['validFrom_time_t']);
+        $this->validTo = new \DateTime();
+        $this->validTo->setTimestamp($res['validTo_time_t']);
     }
 
     /**
@@ -186,5 +202,21 @@ final class Certificate
     public function setChain($chain)
     {
         $this->chain = $chain;
+    }
+
+    /**
+     * @return \DateTime
+     */
+    public function getValidFrom()
+    {
+        return $this->validFrom;
+    }
+
+    /**
+     * @return \DateTime
+     */
+    public function getValidTo()
+    {
+        return $this->validTo;
     }
 }
