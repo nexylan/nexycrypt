@@ -12,7 +12,7 @@
 
 use GuzzleHttp\Exception\ClientException;
 use Nexy\NexyCrypt\Authorization\Challenge\Http01Challenge;
-use Nexy\NexyCrypt\Client;
+use Nexy\NexyCrypt\NexyCrypt;
 
 require_once __DIR__.'/vendor/autoload.php';
 
@@ -28,8 +28,8 @@ for ($a = 1; $a < $argc - 1; ++$a) {
 $step = intval($argv[$a]);
 
 // First commented line is for production.
-//$client = new Client();
-$client = new Client(null, 'https://acme-staging.api.letsencrypt.org/');
+//$client = new NexyCrypt();
+$client = new NexyCrypt(null, 'https://acme-staging.api.letsencrypt.org/');
 
 try {
     $client->register();

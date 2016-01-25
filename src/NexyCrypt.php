@@ -13,7 +13,7 @@ use Psr\Http\Message\ResponseInterface;
 /**
  * @author Sullivan Senechal <soullivaneuh@gmail.com>
  */
-class Client
+class NexyCrypt
 {
     /**
      * @var \GuzzleHttp\Client
@@ -210,7 +210,7 @@ subjectAltName = '.$san.'
      * Asks new-cert on Let's Encrypt to get and generate signed certificates.
      *
      * FullChain, cert and chain keys will be provider.
-     * Client::generateCertificate method MUST be called before this one.
+     * NexyCrypt::generateCertificate method MUST be called before this one.
      *
      * @param Certificate $certificate
      *
