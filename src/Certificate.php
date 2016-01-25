@@ -61,6 +61,23 @@ final class Certificate
     private $chain;
 
     /**
+     * Returns associative array with filename and content.
+     *
+     * @return string[]
+     */
+    public function getFilesArray()
+    {
+        return [
+            'privkey.pem' => $this->privkey,
+            'pubkey.pem' => $this->pubkey,
+            'csr' => $this->csr,
+            'fullchain.pem' => $this->fullchain,
+            'cert.pem' => $this->cert,
+            'chain.pem' => $this->chain,
+        ];
+    }
+
+    /**
      * @return string
      */
     public function getPrivkey()
