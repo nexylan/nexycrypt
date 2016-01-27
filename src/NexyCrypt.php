@@ -246,6 +246,14 @@ subjectAltName = '.$san.'
     }
 
     /**
+     * @return PrivateKey
+     */
+    public function getPrivateKey()
+    {
+        return $this->privateKey;
+    }
+
+    /**
      * @param string $uri
      * @param array  $payload
      *
