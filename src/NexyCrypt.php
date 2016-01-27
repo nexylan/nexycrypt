@@ -92,6 +92,7 @@ class NexyCrypt
             ]);
         } catch (ClientException $e) {
             if (409 === $e->getResponse()->getStatusCode()) {
+                $this->regLocation = $this->lastResponseHeaders['Location'][0];
                 // Registration location is now saved, try init again.
                 $this->register();
             } else {
@@ -323,11 +324,6 @@ subjectAltName = '.$san.'
                 preg_match('/^<(\S+)>;rel="(\S+)"$/', $link, $matches);
                 $this->links[$matches[2]] = $matches[1];
             }
-        }
-
-        // Keep registration location for terms agreement.
-        if (isset($this->lastResponseHeaders['Location'][0])) {
-            $this->regLocation = $this->lastResponseHeaders['Location'][0];
         }
     }
 
