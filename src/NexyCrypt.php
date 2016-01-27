@@ -148,6 +148,10 @@ class NexyCrypt
             usleep(100);
             $response = $this->request('GET', $this->links['up']);
             $authorization = $this->getAuthorization(json_decode($response->getBody()->getContents(), true), false);
+
+            if ('invalid' === $authorization->getStatus()) {
+                return false;
+            }
         } while ('valid' !== $authorization->getStatus());
 
         return true;
