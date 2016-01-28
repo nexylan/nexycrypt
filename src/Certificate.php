@@ -79,7 +79,7 @@ final class Certificate
         return [
             'privkey.pem' => $this->privkey,
             'pubkey.pem' => $this->pubkey,
-            'csr' => $this->csr,
+            'csr.pem' => $this->csr,
             'fullchain.pem' => $this->fullchain,
             'cert.pem' => $this->cert,
             'chain.pem' => $this->chain,
