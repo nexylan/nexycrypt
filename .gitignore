@@ -1,2 +1,6 @@
 /vendor
 /composer.lock
+
+# Generated files from examples
+/public
+/cert
