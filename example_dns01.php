@@ -10,8 +10,8 @@
  * # Get the certificate files on cert folder
  */
 
-use GuzzleHttp\Exception\ClientException;
 use Nexy\NexyCrypt\Authorization\Challenge\Http01Challenge;
+use Nexy\NexyCrypt\Exception\AcmeApiException;
 use Nexy\NexyCrypt\NexyCrypt;
 
 require_once __DIR__.'/vendor/autoload.php';
@@ -74,8 +74,8 @@ try {
             file_put_contents('cert/'.$filename, $content);
         }
     }
-} catch (ClientException $e) {
-    dump(json_decode($e->getResponse()->getBody()->getContents(), true));
+} catch (AcmeApiException $e) {
+    dump($e->getDetails());
 
     exit(1);
 }

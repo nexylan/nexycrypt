@@ -8,6 +8,7 @@ use Nexy\NexyCrypt\Authorization\Authorization;
 use Nexy\NexyCrypt\Authorization\Challenge\ChallengeFactory;
 use Nexy\NexyCrypt\Authorization\Challenge\ChallengeInterface;
 use Nexy\NexyCrypt\Authorization\Identifier;
+use Nexy\NexyCrypt\Exception\AcmeApiException;
 use Psr\Http\Message\ResponseInterface;
 
 /**
@@ -304,8 +305,9 @@ subjectAltName = '.$san.'
             $response = $this->httpClient->request($method, $uri, $options);
         } catch (ClientException $e) {
             $response = $e->getResponse();
+            $exceptionData = json_decode($response->getBody()->getContents(), true);
 
-            throw $e;
+            throw new AcmeApiException($exceptionData['type'], $exceptionData['detail'], $exceptionData['status']);
         } finally {
             if (isset($response)) {
                 $this->updateHeaders($response);
