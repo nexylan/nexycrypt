@@ -91,8 +91,8 @@ class NexyCrypt
             $this->signedPostRequest(null === $this->regLocation ? 'acme/new-reg' : $this->regLocation, [
                 'resource' => null === $this->regLocation ? 'new-reg' : 'reg',
             ]);
-        } catch (ClientException $e) {
-            if (409 === $e->getResponse()->getStatusCode()) {
+        } catch (AcmeApiException $e) {
+            if (409 === $e->getCode()) {
                 $this->regLocation = $this->lastResponseHeaders['Location'][0];
                 // Registration location is now saved, try init again.
                 $this->register();
