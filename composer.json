@@ -19,7 +19,7 @@
     "require-dev": {
         "analogic/lescript": "^0.1.3",
         "symfony/var-dumper": "^2.7 || ^3.0",
-        "phpunit/phpunit": "^5.4.3",
+        "phpunit/phpunit": "^5.5",
         "sllh/php-cs-fixer-styleci-bridge": "^2.1"
     },
     "autoload": {
