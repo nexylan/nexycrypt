@@ -169,7 +169,11 @@ class NexyCrypt
     public function generateCertificate(array $domains)
     {
         $certificate = new Certificate();
-        $privateKey = openssl_pkey_new();
+        $config = array(
+            'digest_alg' => 'SHA256',
+            'private_key_bits' => 4096,
+        );
+        $privateKey = openssl_pkey_new($config);
         $privateKeyDetails = openssl_pkey_get_details($privateKey);
         openssl_pkey_export($privateKey, $privateKeyOutput);
 
@@ -184,14 +188,14 @@ class NexyCrypt
 
         // @see http://stackoverflow.com/a/9710863/1731473
         fwrite($csrConf,
-'[ req ]
-distinguished_name = req_distinguished_name
-req_extensions = v3_req
-[req_distinguished_name]
-[v3_req]
-subjectAltName = '.$san.'
-[v3_ca]
-');
+            '[ req ]
+            distinguished_name = req_distinguished_name
+            req_extensions = v3_req
+            [req_distinguished_name]
+            [v3_req]
+            subjectAltName = '.$san.'
+            [v3_ca]
+        ');
 
         $csr = openssl_csr_new([
             'CN' => $domains[0],
@@ -201,7 +205,8 @@ subjectAltName = '.$san.'
             'O' => 'Unknown',
         ], $privateKey, [
             'config' => $csrConfPath,
-            'digest_alg' => 'sha256',
+            'digest_alg' => 'SHA256',
+            'private_key_bits' => 4096,
         ]);
         openssl_csr_export($csr, $csrOut);
         $certificate->setCsr($csrOut);
@@ -281,6 +286,7 @@ subjectAltName = '.$san.'
         $signed64 = Base64Url::encode($this->privateKey->sign($protected64.'.'.$payload64));
 
         return $this->request('POST', $uri, [
+            'verify' => false,
             'json' => [
                 'header' => $header,
                 'protected' => $protected64,
@@ -299,7 +305,7 @@ subjectAltName = '.$san.'
      *
      * @return ResponseInterface
      */
-    private function request($method, $uri, array $options = [])
+    private function request($method, $uri, array $options = ['verify' => false])
     {
         try {
             $response = $this->httpClient->request($method, $uri, $options);

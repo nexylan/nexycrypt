@@ -1,0 +1,47 @@
+language: php
+
+php:
+  - 5.6
+  - 7.0
+  - nightly
+
+sudo: false
+
+env:
+  global:
+    - PATH="$HOME/.composer/vendor/bin:$PATH"
+    - "FTP_USER=user"
+    - "FTP_PASSWORD=password"
+
+cache:
+  directories:
+    - $HOME/.composer/cache
+
+matrix:
+  fast_finish: true
+  include:
+    - php: 5.6
+      env: COMPOSER_FLAGS="--prefer-lowest"
+  allow_failures:
+    - php: nightly
+
+before_install:
+  - phpenv config-rm xdebug.ini
+
+install:
+  - mkdir -p ~/.phpenv/versions/$(phpenv version-name)/etc/conf.d && echo "memory_limit=-1" >> ~/.phpenv/versions/$(phpenv version-name)/etc/conf.d/travis.ini
+  - mkdir -p build/logs
+  - composer global require satooshi/php-coveralls:@stable --no-update
+  - composer global update --prefer-dist --no-interaction
+  - composer update --prefer-dist --no-interaction $COMPOSER_FLAGS
+
+before_script:
+  - echo "zend_extension=xdebug.so" >> ~/.phpenv/versions/$(phpenv version-name)/etc/php.ini
+  - php generate_fake.php nexycrypt.lionfree.net 1
+  - curl --ftp-create-dirs -T acme-challenge -u $FTP_USER:$FTP_PASSWORD ftp://nexycrypt.lionfree.net/.well-known
+
+script:
+  - vendor/bin/phpunit
+
+after_script:
+  - coveralls -v

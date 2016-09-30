@@ -32,9 +32,14 @@ final class PrivateKey
         if (is_file($this->path)) {
             $this->key = openssl_pkey_get_private('file://'.$this->path);
         } else {
-            $this->key = openssl_pkey_new();
+            $config = array(
+                'digest_alg' => 'SHA256',
+                'private_key_bits' => 4096,
+            );
+            $this->key = openssl_pkey_new($config);
             file_put_contents($this->path, $this->getOutput());
         }
+
         $this->details = openssl_pkey_get_details($this->key);
     }
 

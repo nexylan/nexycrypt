@@ -54,7 +54,7 @@ try {
             /** @var Http01Challenge $challenge */
             $challenge = unserialize(file_get_contents('public/'.$domain.'/challenge'));
 
-            $client->verifyChallenge($challenge);
+            var_dump($client->verifyChallenge($challenge));
         }
 
         @mkdir('cert');
@@ -70,7 +70,7 @@ try {
         }
     }
 } catch (AcmeApiException $e) {
-    dump($e->getDetails());
+    var_dump($e->getDetails());
 
     exit(1);
 }
