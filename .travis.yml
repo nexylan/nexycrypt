@@ -38,6 +38,7 @@ install:
 before_script:
   - php generate_fake.php nexycrypt.nctu.me 0
   - php generate_fake.php nexycrypt.nctu.me 1
+  - php generate_fake.php nexycrypt.nctu.me 2
   - echo "zend_extension=xdebug.so" >> ~/.phpenv/versions/$(phpenv version-name)/etc/php.ini
 
 script:
