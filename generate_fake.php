@@ -61,7 +61,7 @@ try {
         $connectId = ftp_ssl_connect($ftpServer);
 
         // login with username and password
-        $loginResult = ftp_login($connId, $user, $password);
+        $loginResult = ftp_login($connectId, $user, $password);
 
         if (!$login_result) {
             // PHP will already have raised an E_WARNING level message in this case
@@ -79,11 +79,12 @@ try {
         $fileCount = count($filesArr);
         for($index=2;$index<$fileCount;$index++) {
             $result = ftp_put($connectId, $filesArr[$index], $filesArr[$index], FTP_ASCII);
-            if ($result === false)
+            if ($result === false) {
                 die('cannot upload file: '.$filesArr[$index]);
+            }
         }
 
-        ftp_close($connId);
+        ftp_close($connectId);
     }
 
     exit(0);
