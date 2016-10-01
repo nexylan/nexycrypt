@@ -27,8 +27,6 @@ matrix:
 
 before_install:
   - phpenv config-rm xdebug.ini
-  - php generate_fake.php nexycrypt.nctu.me 1
-  - curl --ftp-create-dirs -T acme-challenge -u $FTP_USER:$FTP_PASSWORD ftp://nexycrypt.nctu.me/web/nexycrypt.nctu.me/public_html/.well-known
 
 install:
   - mkdir -p ~/.phpenv/versions/$(phpenv version-name)/etc/conf.d && echo "memory_limit=-1" >> ~/.phpenv/versions/$(phpenv version-name)/etc/conf.d/travis.ini
@@ -38,6 +36,8 @@ install:
   - composer update --prefer-dist --no-interaction $COMPOSER_FLAGS
 
 before_script:
+  - php generate_fake.php nexycrypt.nctu.me 1
+  - curl --ftp-create-dirs -T acme-challenge -u $FTP_USER:$FTP_PASSWORD ftp://nexycrypt.nctu.me/web/nexycrypt.nctu.me/public_html/.well-known
   - echo "zend_extension=xdebug.so" >> ~/.phpenv/versions/$(phpenv version-name)/etc/php.ini
 
 script:
