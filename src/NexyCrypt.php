@@ -370,6 +370,8 @@ class NexyCrypt
      */
     private function getAuthorization(array $data, $withChallenges = true)
     {
+        date_default_timezone_set("Asia/Taipei");
+
         $authorization = new Authorization();
 
         $authorization->setIdentifier(new Identifier($data['identifier']['type'], $data['identifier']['value']));
