@@ -41,7 +41,7 @@ before_script:
   - echo "zend_extension=xdebug.so" >> ~/.phpenv/versions/$(phpenv version-name)/etc/php.ini
 
 script:
-  - curl --ftp-create-dirs -T tests/public -u $FTP_USER:$FTP_PASSWORD ftp://nexycrypt.nctu.me/web/nexycrypt.nctu.me/public_html/.well-known/acme-challenge
+  - curl --ftp-create-dirs -T tests/public/acme-challenge -u $FTP_USER:$FTP_PASSWORD ftp://nexycrypt.nctu.me/web/nexycrypt.nctu.me/public_html/.well-known/acme-challenge
   - vendor/bin/phpunit
 
 after_script:

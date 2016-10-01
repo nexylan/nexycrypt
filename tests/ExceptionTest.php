@@ -3,7 +3,7 @@
 namespace Nexy\NexyCrypt\Tests;
 
 use PHPUnit\Framework\TestCase;
-use Nexy\NexyCrypt;
+use Nexy\NexyCrypt\NexyCrypt;
 
 class ExceptionTest extends TestCase
 {
