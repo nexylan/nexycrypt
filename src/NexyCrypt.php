@@ -148,6 +148,8 @@ class NexyCrypt
      */
     public function verifyChallenge(ChallengeInterface $challenge)
     {
+        $this->privateKey = $this->getPrivateKey();
+
         $this->signedPostRequest($challenge->getUri(), [
             'resource' => 'challenge',
             'type' => $challenge->getType(),
@@ -237,6 +239,8 @@ class NexyCrypt
      */
     public function signCertificate(Certificate $certificate)
     {
+        $this->privateKey = $this->getPrivateKey();
+
         $this->signedPostRequest('acme/new-cert', [
             'resource' => 'new-cert',
             'csr' => Base64Url::encode($certificate->getRawCsr()),
