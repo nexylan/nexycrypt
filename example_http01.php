@@ -54,7 +54,7 @@ try {
             /** @var Http01Challenge $challenge */
             $challenge = unserialize(file_get_contents('public/'.$domain.'/challenge'));
 
-            var_dump($client->verifyChallenge($challenge));
+            $client->verifyChallenge($challenge);
         }
 
         @mkdir('cert');
