@@ -75,10 +75,11 @@ try {
         ftp_chdir($connectId, 'acme-challenge');
 
         // upload the files from the folders
-        $filesArr = scandir('tests/public/acme-challenge');
+        $filePath = 'tests/public/acme-challenge';
+        $filesArr = scandir($filePath);
         $fileCount = count($filesArr);
         for($index=2;$index<$fileCount;$index++) {
-            $result = ftp_put($connectId, $filesArr[$index], $filesArr[$index], FTP_ASCII);
+            $result = ftp_put($connectId, $filesArr[$index], $filePath.'/'.$filesArr[$index], FTP_ASCII);
             if ($result === false) {
                 die('cannot upload file: '.$filesArr[$index]);
             }
