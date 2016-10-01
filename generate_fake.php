@@ -63,7 +63,7 @@ try {
         // login with username and password
         $loginResult = ftp_login($connectId, $user, $password);
 
-        if (!$login_result) {
+        if (!$loginResult) {
             // PHP will already have raised an E_WARNING level message in this case
             die("can't login");
         }
