@@ -6,7 +6,7 @@ use Nexy\NexyCrypt\Authorization\Challenge\Http01Challenge;
 use Nexy\NexyCrypt\Exception\AcmeApiException;
 use Nexy\NexyCrypt\NexyCrypt;
 
-require_once __DIR__ . '/vendor/autoload.php';
+require_once __DIR__.'/vendor/autoload.php';
 
 if ($argc < 3) {
     echo 'You have to pass domain and step arguments.'.PHP_EOL;

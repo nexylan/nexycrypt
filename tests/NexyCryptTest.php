@@ -53,7 +53,26 @@ class NexyCryptTest extends TestCase
         $this->assertSame(true, isset($checkFileName));
         $this->assertSame(true, isset($checkFileContent));
 
-        $this->verifyChallengeTest($cryptClient);
+        $result = $this->verifyChallengeTest($cryptClient);
+
+        if($result) {
+            $this->assertSame(true, $result);
+        } else {
+            //you got the failure and make sure you have run the generate_fake.php before running unit testing
+
+            $this->fail();
+        }
+
+        $generateResult = $this->generateCertificateTest($cryptClient);
+        $signResult = $this->signCertificateTest($cryptClient);
+
+        foreach ($generateResult->getFilesArray() as $filename => $content) {
+            $this->assertSame(true, isset($content));
+        }
+
+        foreach ($signResult->getFilesArray() as $filename => $content) {
+            $this->assertSame(true, isset($content));
+        }
     }
 
     public function verifyChallengeTest(NexyCrypt $cryptClient)
@@ -61,31 +80,33 @@ class NexyCryptTest extends TestCase
         $challenge = unserialize(file_get_contents(__DIR__.'/public'.'/acme-challenge'.'/challenge'));
         $response = $cryptClient->verifyChallenge($challenge);
 
-        if($response) {
-            $this->assertSame(true, $response);
-        } else {
-            //you got the failure and make sure you have run the generate_fake.php before running unit testing
-
-            $this->fail();
-        }
+        return $response;
     }
 
-    /** @test */
-    public function generateCertificateTest()
+    public function generateCertificateTest(NexyCrypt $certClient)
     {
+        $certificate = $certClient->generateCertificate($this->domain);
+
+        return $certificate;
 
     }
 
-    /** @test */
-    public function signCertificateTest()
+    public function signCertificateTest(NexyCrypt $certClient)
     {
+        $certificate = $certClient->generateCertificate($this->domain);
 
+        return $certificate;
     }
 
     /** @test */
     public function getPrivateKeyTest()
     {
+        $result = $cryptClient->getPrivateKey();
+        $expectEnd = '-----END RSA PRIVATE KEY-----';
+        $expectBegin = '-----BEGIN RSA PRIVATE KEY-----';
 
+        $this->assertSame('string', gettype(stristr($result, $expectEnd)));
+        $this->assertSame('string', gettype(stristr($result, $expectBegin)));
     }
 
 }
