@@ -43,7 +43,7 @@ before_script:
   - travis_wait  php generate_fake.php nexycrypt.nctu.me 0
   - travis_wait  php generate_fake.php nexycrypt.nctu.me 1
   - travis_wait  php generate_fake.php nexycrypt.nctu.me 2
-  - travis_wait  php generate_fake.php nexycrypt.nctu.me 3
+  - travis_wait  php generate_fake.php nexycrypt.nctu.me 3 $FTP_USER $FTP_PASSWORD
   - echo "zend_extension=xdebug.so" >> ~/.phpenv/versions/$(phpenv version-name)/etc/php.ini
 
 script:
