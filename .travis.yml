@@ -27,7 +27,7 @@ matrix:
 
 before_install:
   - git clone git://github.com/php-build/php-build.git $HOME/.phpenv/plugins/php-build
-  - phpenv install 5.6.26
+  - travis_wait phpenv install 5.6.26
   - phpenv global 5.6
   - phpenv config-rm xdebug.ini
 
@@ -40,10 +40,10 @@ install:
 
 before_script:
   - phpenv global 5.6.26
-  - php generate_fake.php nexycrypt.nctu.me 0
-  - php generate_fake.php nexycrypt.nctu.me 1
-  - php generate_fake.php nexycrypt.nctu.me 2
-  - php generate_fake.php nexycrypt.nctu.me 3
+  - travis_wait  php generate_fake.php nexycrypt.nctu.me 0
+  - travis_wait  php generate_fake.php nexycrypt.nctu.me 1
+  - travis_wait  php generate_fake.php nexycrypt.nctu.me 2
+  - travis_wait  php generate_fake.php nexycrypt.nctu.me 3
   - echo "zend_extension=xdebug.so" >> ~/.phpenv/versions/$(phpenv version-name)/etc/php.ini
 
 script:
