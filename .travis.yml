@@ -26,8 +26,6 @@ matrix:
     - php: nightly
 
 before_install:
-  - php generate_fake.php nexycrypt.nctu.me 0
-  - php generate_fake.php nexycrypt.nctu.me 1
   - phpenv config-rm xdebug.ini
 
 install:
@@ -38,6 +36,8 @@ install:
   - composer update --prefer-dist --no-interaction $COMPOSER_FLAGS
 
 before_script:
+  - php generate_fake.php nexycrypt.nctu.me 0
+  - php generate_fake.php nexycrypt.nctu.me 1
   - echo "zend_extension=xdebug.so" >> ~/.phpenv/versions/$(phpenv version-name)/etc/php.ini
 
 script:
