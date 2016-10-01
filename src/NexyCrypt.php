@@ -128,6 +128,8 @@ class NexyCrypt
      */
     public function authorize($domain)
     {
+        $this->privateKey = $this->getPrivateKey();
+
         $response = $this->signedPostRequest('acme/new-authz', [
             'resource' => 'new-authz',
             'identifier' => [
