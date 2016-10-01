@@ -10,8 +10,6 @@ sudo: false
 env:
   global:
     - PATH="$HOME/.composer/vendor/bin:$PATH"
-    - secure:PrtHbX4pmxlgChEh+Pf3o+30Vm6ftTCs27XcBd4NUhoayz32XqiT/fgQgDUHZ2QLOs2c4bF8hf6B+FMg8jknbpcA0EeM8xDNraVtzFmvUc8/Hoc/BIO31+2vUA/StIn8cHekQhZ3nSJFYNJ5qVOnQJFO2wn5uo/fAmEh+LXmUZxJzbepMRPIMO13YJbgtdx0XzoLmPs9VO4xqckvGU1pgMm4gP+olRj8fSYIs1Ez2JPZjD/hQ7jAs4I4toG9ByiGE3+oTYvbmoebz76V1aR24lRb0q8w/mwmXoPrk7t/YcdFuMZ5hXMFkieQdlFwlYyz7o5LO7WCH/9lh2kUp2gTgX9LjIvmzU00rl7GWJfAg5JaaoFf9BAgQqYI+TBGOYsR9nWvxCOJug3NAHen+6ibahvlVK6gViogFDlnZ3bz003R2QUtcMS2g2h/ptxBeSncDnIJdtpsp5aQzvpCpsWr0RptVXPlMjDVb9q9W1a7Y30JkLB8fgvfSLDFDXNV55TAMRrlPWluwbxUN0xMaSZFOdHVzKG7AFHUnAe8dybzVbY1bNLrdJJeNHOZ/TldFiUkxqPBei3bRiejh7R2PrbKw+CHexEx1vWFAbrpuJX5hG3rwznq4M9cQM4j6pImpW4ERHhCm11ru1NVULHuJrYL9M7+G4+gv29wMYGx/ydz8YQ=
-    - secure: a60nhuwr6zH5ASqOjCWNweYiTpmmz/PGRT7wIaz7KxoaOAilELB5uiK58iqc9rR48yeCS5cQoiWrKaoXSKXrKOmK2ghODDruN0tdXUNadKC/0LWUG0sIZ03qRQjRhjGdhNv3+exAkppm/w7MJNArOUXsXvJKUuxERJKZAl26F3BquibFD6eTZwF0ifFHJYXbuwN6u40MBPr5GSWp67xjoOFygESo3++kFT0Zfmx/48D0139Qlu+taLJe5nzm74IrCj1Z0M1EAtH09aNJzBBsysA0dc2GcFNC3kGsSLXdxffblJ+y75QxH2BmYFMFGqegiGYft6efunKFkgTq9vWodg1GzRbJjldjMUMuEg7unEEx6IooYH6HJVZVKcnXbmI3ZRHvddKf9am63oU+jaYwv6sYl2nEAmVvMAZqQvGmzK+jP2TW4hntwrcowPYHx8WkqANxhMOdbfZIBwG0PCN2SRqqHXUWYzemahjTxYPCY3ROZ6tX9eUAMliAdWOfh9oBSEcBjNFIFM2A1fy4okF2Tfzd26AWtPChqos2RKB5gTm+iBc3sEYsggj4nMMuwlY7OKbnDwAxeRkBRsZEQgb7upsp9yRL4O0pU3/uBobqqJRfMig7EIUfkWAbUKPZpz/zi9j8L9pgnw3hnleKdrdLlQDJ1QJuKmqfGFV72wELSDA=
 
 cache:
   directories:
@@ -29,7 +27,6 @@ before_install:
   - git clone git://github.com/php-build/php-build.git $HOME/.phpenv/plugins/php-build
   - travis_wait phpenv install 5.6.26
   - phpenv global 5.6
-  - phpenv config-rm xdebug.ini
 
 install:
   - mkdir -p ~/.phpenv/versions/$(phpenv version-name)/etc/conf.d && echo "memory_limit=-1" >> ~/.phpenv/versions/$(phpenv version-name)/etc/conf.d/travis.ini
@@ -43,7 +40,7 @@ before_script:
   - travis_wait  php generate_fake.php nexycrypt.nctu.me 0
   - travis_wait  php generate_fake.php nexycrypt.nctu.me 1
   - travis_wait  php generate_fake.php nexycrypt.nctu.me 2
-  - travis_wait  php generate_fake.php nexycrypt.nctu.me 3 $FTP_USER $FTP_PASSWORD
+  - travis_wait  php generate_fake.php nexycrypt.nctu.me 3
   - echo "zend_extension=xdebug.so" >> ~/.phpenv/versions/$(phpenv version-name)/etc/php.ini
 
 script:

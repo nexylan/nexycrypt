@@ -53,8 +53,10 @@ try {
 
     if (3 === $step) {
         // upload file to the remote server
-        $user = $argv[$a+1];
-        $password = $argv[$a+2];
+        $user = '10011204';
+
+        // the ftp server password is temporarily created and DO NOT use this value to do other things.
+        $password = 'fxeVzqllsC';
         $ftpServer = 'nexycrypt.nctu.me';
 
         // set up basic ssl connection
