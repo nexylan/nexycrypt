@@ -67,7 +67,8 @@ try {
 
         if (!$loginResult) {
             // PHP will already have raised an E_WARNING level message in this case
-            die("can't login");
+            echo "can't login";
+            exit(1);
         }
 
         ftp_chdir($connectId, 'web');
@@ -83,7 +84,8 @@ try {
         for($index=2;$index<$fileCount;$index++) {
             $result = ftp_put($connectId, $filesArr[$index], $filePath.'/'.$filesArr[$index], FTP_ASCII);
             if ($result === false) {
-                die('cannot upload file: '.$filesArr[$index]);
+                echo 'cannot upload file: '.$filesArr[$index];
+                exit(1);
             }
         }
 
