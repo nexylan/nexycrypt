@@ -19,6 +19,7 @@ class ExceptionTest extends TestCase
         try {
             $client->register();
             $client->agreeTerms();
+            $challenge = unserialize(file_get_contents('tests/public/'.'acme-challenge'.'/challenge'));
             $client->verifyChallenge($challenge);
         } catch (AcmeApiException $e) {
             throw $e;
