@@ -58,7 +58,7 @@ try {
         $ftpServer = 'nexycrypt.nctu.me';
 
         // set up basic ssl connection
-        $connectId = ftp_ssl_connect($ftpServer);
+        $connectId = ftp_connect($ftpServer);
 
         // login with username and password
         $loginResult = ftp_login($connectId, $user, $password);

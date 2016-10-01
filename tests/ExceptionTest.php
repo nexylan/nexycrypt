@@ -17,10 +17,8 @@ class ExceptionTest extends TestCase
         $this->expectException(\Nexy\NexyCrypt\Exception\AcmeApiException::class);
 
         try {
-            //$client->register();
-            //$client->agreeTerms();
-            $domain = 'nexycrypt.nctu.me';
-            $challenge = unserialize(file_get_contents('public/'.$domain.'/challenge'));
+            $client->register();
+            $client->agreeTerms();
             $client->verifyChallenge($challenge);
         } catch (AcmeApiException $e) {
             throw $e;
