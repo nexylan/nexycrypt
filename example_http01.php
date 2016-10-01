@@ -44,6 +44,9 @@ try {
     }
 
     if (2 === $step) {
+        $client->register();
+        $client->agreeTerms();
+
         @mkdir('public');
 
         foreach ($domains as $domain) {
