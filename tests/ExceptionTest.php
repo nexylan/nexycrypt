@@ -23,4 +23,5 @@ class ExceptionTest extends TestCase
         } catch (AcmeApiException $e) {
             throw $e;
         }
+    }
 }
