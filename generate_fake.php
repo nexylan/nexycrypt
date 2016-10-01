@@ -1,5 +1,7 @@
 <?php
 
+set_time_limit(0);
+
 //generate the fake .well-known folder and upload the folder to the testing web hosting.
 
 use Nexy\NexyCrypt\Authorization\Challenge\Http01Challenge;
