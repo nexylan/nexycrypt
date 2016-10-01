@@ -32,10 +32,17 @@ $step = intval($argv[$a]);
 $client = new NexyCrypt(null, 'https://acme-staging.api.letsencrypt.org/');
 
 try {
-    $client->register();
-    $client->agreeTerms();
+    if (0 === $step) {
+        //create the required account private key
+        $client->createKey();
+    }
 
     if (1 === $step) {
+        $client->register();
+        $client->agreeTerms();
+    }
+
+    if (2 === $step) {
         @mkdir('public');
 
         foreach ($domains as $domain) {
@@ -52,7 +59,7 @@ try {
         }
     }
 
-    if (2 === $step) {
+    if (3 === $step) {
         foreach ($domains as $domain) {
             /** @var Http01Challenge $challenge */
             $challenge = unserialize(file_get_contents('public/'.$domain.'/challenge'));

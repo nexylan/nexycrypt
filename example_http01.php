@@ -38,7 +38,7 @@ try {
         $client->createKey();
     }
 
-    if(1 === $step) {
+    if (1 === $step) {
         $client->register();
         $client->agreeTerms();
     }
