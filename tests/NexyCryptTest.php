@@ -58,7 +58,7 @@ class NexyCryptTest extends TestCase
         if($result) {
             $this->assertSame(true, $result);
         } else {
-            //you got the failure and make sure you have run the generate_fake.php before running unit testing
+            //you got the failure and make sure you have run the generate_fake.php correctly before running unit testing
 
             $this->fail();
         }
@@ -73,6 +73,10 @@ class NexyCryptTest extends TestCase
         foreach ($signResult->getFilesArray() as $filename => $content) {
             $this->assertSame(true, isset($content));
         }
+
+        $resType = $this->getPrivateKeyTest($cryptClient);
+
+        $this->assertSame('object', gettype($resType));
     }
 
     public function verifyChallengeTest(NexyCrypt $cryptClient)
@@ -98,15 +102,11 @@ class NexyCryptTest extends TestCase
         return $certificate;
     }
 
-    /** @test */
-    public function getPrivateKeyTest()
+    public function getPrivateKeyTest(NexyCrypt $cryptClient)
     {
         $result = $cryptClient->getPrivateKey();
-        $expectEnd = '-----END RSA PRIVATE KEY-----';
-        $expectBegin = '-----BEGIN RSA PRIVATE KEY-----';
 
-        $this->assertSame('string', gettype(stristr($result, $expectEnd)));
-        $this->assertSame('string', gettype(stristr($result, $expectBegin)));
+        return $result;
     }
 
 }
