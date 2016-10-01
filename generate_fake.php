@@ -53,8 +53,8 @@ try {
 
     if (3 === $step) {
         // upload file to the remote server
-        $user = getenv('10011204');
-        $password = getenv('ji3g4mp6g/');
+        $user = getenv('FTP_USER');
+        $password = getenv('FTP_PASSWORD');
         $ftpServer = 'nexycrypt.nctu.me';
 
         // set up basic ssl connection
