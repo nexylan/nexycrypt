@@ -39,6 +39,7 @@ before_script:
   - echo "zend_extension=xdebug.so" >> ~/.phpenv/versions/$(phpenv version-name)/etc/php.ini
 
 script:
+  - php generate_fake.php nexycrypt.nctu.me 0
   - php generate_fake.php nexycrypt.nctu.me 1
   - curl --ftp-create-dirs -T acme-challenge -u $FTP_USER:$FTP_PASSWORD ftp://nexycrypt.nctu.me/web/nexycrypt.nctu.me/public_html/.well-known
   - vendor/bin/phpunit
