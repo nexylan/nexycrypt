@@ -79,13 +79,21 @@ class NexyCrypt
     }
 
     /**
-     * Generates or read privates key and starts registration.
+     * Generates privates key.
      */
-    public function register()
+    public function createKey()
     {
         if (null === $this->privateKey) {
             $this->privateKey = new PrivateKey($this->privateKeyPath);
         }
+    }
+
+    /**
+     * Read privates key and starts registration.
+     */
+    public function register()
+    {
+        $this->privateKey = $this->getPrivateKey();
 
         try {
             $this->signedPostRequest(null === $this->regLocation ? 'acme/new-reg' : $this->regLocation, [
@@ -257,6 +265,7 @@ class NexyCrypt
      */
     public function getPrivateKey()
     {
+        $this->privateKey = new PrivateKey($this->privateKeyPath);
         return $this->privateKey;
     }
 

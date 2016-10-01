@@ -34,7 +34,7 @@ final class PrivateKey
         } else {
             $config = array(
                 'digest_alg' => 'SHA256',
-                'private_key_bits' => 4096,
+                'private_key_bits' => 2048,
             );
             $this->key = openssl_pkey_new($config);
             file_put_contents($this->path, $this->getOutput());

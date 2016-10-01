@@ -1,7 +1,5 @@
 <?php
 
-set_time_limit(0);
-
 //generate the fake .well-known folder and upload the folder to the testing web hosting.
 
 use Nexy\NexyCrypt\Authorization\Challenge\Http01Challenge;
@@ -27,7 +25,6 @@ $client = new NexyCrypt(null, 'https://acme-staging.api.letsencrypt.org/');
 
 try {
     $client->register();
-    $client->agreeTerms();
 
     if (1 === $step) {
         @mkdir('tests/public');
