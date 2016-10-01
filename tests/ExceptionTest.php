@@ -19,6 +19,7 @@ class ExceptionTest extends TestCase
         try {
             //$client->register();
             //$client->agreeTerms();
+            $domain = 'nexycrypt.nctu.me';
             $challenge = unserialize(file_get_contents('public/'.$domain.'/challenge'));
             $client->verifyChallenge($challenge);
         } catch (AcmeApiException $e) {
