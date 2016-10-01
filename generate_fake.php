@@ -1,6 +1,6 @@
 <?php
 
-//generate the fake .well-known folder and upload the folder to the testing web hosting.
+// generate the fake .well-known folder and upload the folder to the testing web hosting.
 
 use Nexy\NexyCrypt\Authorization\Challenge\Http01Challenge;
 use Nexy\NexyCrypt\Exception\AcmeApiException;
@@ -25,11 +25,11 @@ $client = new NexyCrypt(null, 'https://acme-staging.api.letsencrypt.org/');
 
 try {
     if (0 === $step) {
-        //create the required account private key
+        // create the required account private key
         $client->createKey();
     }
 
-    if(1 === $step) {
+    if (1 === $step) {
         $client->register();
         $client->agreeTerms();
     }
@@ -49,6 +49,41 @@ try {
             file_put_contents('tests/public/'.'acme-challenge'.'/'.$challenge->getFileName(), $challenge->getFileContent());
             file_put_contents('tests/public/'.'acme-challenge'.'/challenge', serialize($challenge));
         }
+    }
+
+    if (3 === $step) {
+        // upload file to the remote server
+        $user = getenv('FTP_USER');
+        $password = getenv('FTP_PASSWORD');
+        $ftpServer = 'nexycrypt.nctu.me';
+
+        // set up basic ssl connection
+        $connectId = ftp_ssl_connect($ftpServer);
+
+        // login with username and password
+        $loginResult = ftp_login($connId, $user, $password);
+
+        if (!$login_result) {
+            // PHP will already have raised an E_WARNING level message in this case
+            die("can't login");
+        }
+
+        ftp_chdir($connectId, 'web');
+        ftp_chdir($connectId, 'nexycrypt.nctu.me');
+        ftp_chdir($connectId, 'public_html');
+        ftp_chdir($connectId, '.well-known');
+        ftp_chdir($connectId, 'acme-challenge');
+
+        // upload the files from the folders
+        $filesArr = scandir('tests/public/acme-challenge');
+        $fileCount = count($filesArr);
+        for($index=2;$index<$fileCount;$index++) {
+            $result = ftp_put($connectId, $filesArr[$index], $filesArr[$index], FTP_ASCII);
+            if ($result === false)
+                die('cannot upload file: '.$filesArr[$index]);
+        }
+
+        ftp_close($connId);
     }
 
     exit(0);
