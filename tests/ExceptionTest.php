@@ -4,6 +4,7 @@ namespace Nexy\NexyCrypt\Tests;
 
 use PHPUnit\Framework\TestCase;
 use Nexy\NexyCrypt\NexyCrypt;
+use Nexy\NexyCrypt\Exception\AcmeApiException;
 
 class ExceptionTest extends TestCase
 {
@@ -20,7 +21,7 @@ class ExceptionTest extends TestCase
 
         $client = new NexyCrypt(null, 'https://acme-staging.api.letsencrypt.org/');
 
-        $this->expectException(\Nexy\NexyCrypt\Exception\AcmeApiException::class);
+        $this->expectException(AcmeApiException::class);
 
         $fileName = 'challenge';
 
