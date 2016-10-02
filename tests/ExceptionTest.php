@@ -78,7 +78,7 @@ class ExceptionTest extends TestCase
         ftp_chdir($connect, $this->wellKnown);
         ftp_chdir($connect, $this->acmeChallenge);
 
-        ftp_delete($connect, $fileName);
+        ftp_put($connect, $fileName, __DIR__.'/public/acme-challenge'.'/'.$fileName, FTP_ASCII);
 
         ftp_close($connect);
     }
