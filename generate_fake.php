@@ -53,14 +53,15 @@ try {
 
     if (3 === $step) {
         // upload file to the remote server
-        $user = '10011204';
+        $user = 'u431315912';
 
         // the ftp server password is temporarily created and DO NOT use this value to do other things.
-        $password = 'fxeVzqllsC';
-        $ftpServer = 'nexycrypt.nctu.me';
+        // the free web hosting will be closed or reset at the irregular time.
+        $password = '8dpv8LvjEE';
+        $ftpServer = 'nexycrypt.esy.es';
 
         // set up basic ssl connection
-        $connectId = ftp_ssl_connect($ftpServer);
+        $connectId = ftp_connect($ftpServer);
 
         // login with username and password
         $loginResult = ftp_login($connectId, $user, $password);
@@ -73,9 +74,6 @@ try {
             exit(1);
         }
 
-        ftp_chdir($connectId, 'web');
-        ftp_chdir($connectId, 'nexycrypt.nctu.me');
-        ftp_chdir($connectId, 'public_html');
         ftp_chdir($connectId, '.well-known');
         ftp_chdir($connectId, 'acme-challenge');
 

@@ -9,7 +9,7 @@ class NexyCryptTest extends TestCase
 {
     public $url = 'https://acme-staging.api.letsencrypt.org/';
 
-    public $domain = 'nexycrypt.nctu.me';
+    public $domain = 'nexycrypt.esy.es';
 
     /** @test */
     public function registerTest()
