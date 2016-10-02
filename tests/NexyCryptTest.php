@@ -97,7 +97,7 @@ class NexyCryptTest extends TestCase
 
     public function signCertificateTest(NexyCrypt $certClient, $generateResult)
     {
-        $certificate = $certClient->generateCertificate($generateResult);
+        $certificate = $certClient->signCertificate($generateResult);
 
         return $certificate;
     }
