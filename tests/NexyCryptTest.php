@@ -64,13 +64,11 @@ class NexyCryptTest extends TestCase
 
         $result = $this->verifyChallengeTest($cryptClient);
 
-        if($result) {
-            $this->assertSame(true, $result);
-        } else {
-            //you got the failure and make sure you have run the generate_fake.php correctly before running unit testing
+        $this->assertSame(true, $result);
 
-            $this->fail();
-        }
+        $result = verifyChallengeFail($cryptClient);
+
+        $this->assertSame(false, $result);
 
         $generateResult = $this->generateCertificateTest($cryptClient);
         $signResult = $this->signCertificateTest($cryptClient, $generateResult);
@@ -86,6 +84,21 @@ class NexyCryptTest extends TestCase
         $resType = $this->getPrivateKeyTest($cryptClient);
 
         $this->assertSame('object', gettype($resType));
+    }
+
+    public function verifyChallengeFail(NexyCrypt $cryptClient)
+    {
+        $fileName = 'challenge';
+
+        $this->deleteRemoteFile($fileName);
+
+        // the challenge file is not existed.
+        $challenge = unserialize(file_get_contents('tests/public/'.'acme-challenge'.'/challenge'));
+        $result = $cryptClient->verifyChallenge($challenge);
+
+        $this->assertSame(false, $result);
+
+        $this->addRemoteFile($fileName);
     }
 
     public function verifyChallengeTest(NexyCrypt $cryptClient)
@@ -116,6 +129,50 @@ class NexyCryptTest extends TestCase
         $result = $cryptClient->getPrivateKey();
 
         return $result;
+    }
+
+    public function deleteRemoteFile($fileName)
+    {
+        //this web hosting is only for testing, DO NOT use for ypur production!
+        // it will be close in the irregular time.
+
+        $connect = ftp_connect($this->ftpServer);
+        $result = ftp_login($connect, $this->user, $this->password);
+
+        ftp_pasv($connect, true);
+
+        if($result === false) {
+            die('ftp logn is failed.');
+        }
+
+        ftp_chdir($connect, $this->wellKnown);
+        ftp_chdir($connect, $this->acmeChallenge);
+
+        ftp_delete($connect, $fileName);
+
+        ftp_close($connect);
+    }
+
+    public function addRemoteFile($fileName)
+    {
+        //this web hosting is only for testing, DO NOT use for ypur production!
+        // it will be close in the irregular time.
+
+        $connect = ftp_connect($this->ftpServer);
+        $result = ftp_login($connect, $this->user, $this->password);
+
+        ftp_pasv($connect, true);
+
+        if($result === false) {
+            die('ftp logn is failed.');
+        }
+
+        ftp_chdir($connect, $this->wellKnown);
+        ftp_chdir($connect, $this->acmeChallenge);
+
+        ftp_put($connect, $fileName, __DIR__.'/public/acme-challenge'.'/'.$fileName, FTP_ASCII);
+
+        ftp_close($connect);
     }
 
 }
