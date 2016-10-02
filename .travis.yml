@@ -34,10 +34,10 @@ install:
   - composer update --prefer-dist --no-interaction $COMPOSER_FLAGS
 
 before_script:
-  - travis_wait  php generate_fake.php nexycrypt.esy.es 0
-  - travis_wait  php generate_fake.php nexycrypt.esy.es 1
-  - travis_wait  php generate_fake.php nexycrypt.esy.es 2
-  - travis_wait  php generate_fake.php nexycrypt.esy.es 3
+  - travis_wait php generate_fake.php nexycrypt.esy.es 0
+  - travis_wait php generate_fake.php nexycrypt.esy.es 1
+  - travis_wait php generate_fake.php nexycrypt.esy.es 2
+  - travis_wait php generate_fake.php nexycrypt.esy.es 3
   - echo "zend_extension=xdebug.so" >> ~/.phpenv/versions/$(phpenv version-name)/etc/php.ini
 
 script:
