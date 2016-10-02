@@ -64,7 +64,7 @@ class NexyCryptTest extends TestCase
         }
 
         $generateResult = $this->generateCertificateTest($cryptClient);
-        $signResult = $this->signCertificateTest($cryptClient);
+        $signResult = $this->signCertificateTest($cryptClient, $generateResult);
 
         foreach ($generateResult->getFilesArray() as $filename => $content) {
             $this->assertSame(true, isset($content));
@@ -89,15 +89,15 @@ class NexyCryptTest extends TestCase
 
     public function generateCertificateTest(NexyCrypt $certClient)
     {
-        $certificate = $certClient->generateCertificate($this->domain);
+        $certificate = $certClient->generateCertificate([$this->domain]);
 
         return $certificate;
 
     }
 
-    public function signCertificateTest(NexyCrypt $certClient)
+    public function signCertificateTest(NexyCrypt $certClient, $generateResult)
     {
-        $certificate = $certClient->generateCertificate($this->domain);
+        $certificate = $certClient->generateCertificate($generateResult);
 
         return $certificate;
     }
