@@ -12,6 +12,15 @@ class NexyCryptTest extends TestCase
     public $domain = 'nexycrypt.esy.es';
 
     /** @test */
+    public function createKeyTest()
+    {
+        $cryptClient = new NexyCrypt(null, $this->url);
+        $cryptClient->createKey();
+
+        $this->assertSame(true, file_exists(sys_get_temp_dir().'/nexycrypt.private_key'));
+    }
+
+    /** @test */
     public function registerTest()
     {
         //have no own private key

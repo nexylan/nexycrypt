@@ -79,7 +79,7 @@ class NexyCrypt
     }
 
     /**
-     * Generates privates key.
+     * Generate private key.
      */
     public function createKey()
     {
@@ -89,7 +89,7 @@ class NexyCrypt
     }
 
     /**
-     * Read privates key and starts registration.
+     * Read private key and starts registration.
      */
     public function register()
     {
