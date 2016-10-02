@@ -24,8 +24,6 @@ matrix:
     - php: nightly
 
 before_install:
-  - git clone git://github.com/php-build/php-build.git $HOME/.phpenv/plugins/php-build
-  - travis_wait phpenv install 5.6.26
   - phpenv global 5.6
 
 install:
@@ -36,7 +34,6 @@ install:
   - composer update --prefer-dist --no-interaction $COMPOSER_FLAGS
 
 before_script:
-  - phpenv global 5.6.26
   - travis_wait  php generate_fake.php nexycrypt.esy.es 0
   - travis_wait  php generate_fake.php nexycrypt.esy.es 1
   - travis_wait  php generate_fake.php nexycrypt.esy.es 2

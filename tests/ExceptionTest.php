@@ -47,6 +47,8 @@ class ExceptionTest extends TestCase
         $connect = ftp_connect($this->ftpServer);
         $result = ftp_login($connect, $this->user, $this->password);
 
+        ftp_pasv($connectId, true);
+
         if($result === false) {
             die('ftp logn is failed.');
         }
@@ -66,6 +68,8 @@ class ExceptionTest extends TestCase
 
         $connect = ftp_connect($this->ftpServer);
         $result = ftp_login($connect, $this->user, $this->password);
+
+        ftp_pasv($connectId, true);
 
         if($result === false) {
             die('ftp logn is failed.');
