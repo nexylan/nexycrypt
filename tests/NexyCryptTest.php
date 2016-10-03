@@ -135,6 +135,17 @@ class NexyCryptTest extends TestCase
         }
     }
 
+    /** @test */
+    public function getKeyTest()
+    {
+        @unlink(sys_get_temp_dir().$this->keyPath);
+
+        $cryptClient = new NexyCrypt(null, $this->url);
+        $cryptClient->createKey();
+
+        $this->assertSame(true, file_exists(sys_get_temp_dir().$this->keyPath));
+    }
+
     public function verifyChallengeTest(NexyCrypt $cryptClient)
     {
         $challenge = unserialize(file_get_contents(__DIR__.'/'.'public'.'/acme-challenge'.'/challenge'));

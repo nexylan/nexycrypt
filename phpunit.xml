@@ -13,7 +13,8 @@
 
     <filter>
         <whitelist>
-            <directory suffix=".php">./src/</directory>
+            <file suffix=".php">./src/NexyCrypt.php</file>
+            <file suffix=".php">./src/PrivateKey.php</file>
         </whitelist>
     </filter>
 
