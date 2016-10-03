@@ -22,9 +22,7 @@
         "sllh/php-cs-fixer-styleci-bridge": "^2.1"
     },
     "autoload": {
-        "psr-4": {
-            "Nexy\\NexyCrypt\\": "src"
-        }
+        "psr-4": { "Nexy\\NexyCrypt\\": "src" }
     },
     "extra": {
         "branch-alias": {
