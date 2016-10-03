@@ -4,6 +4,7 @@ namespace Nexy\NexyCrypt\Tests;
 
 use PHPUnit\Framework\TestCase;
 use Nexy\NexyCrypt\NexyCrypt;
+use Nexy\NexyCrypt\Exception\AcmeApiException;
 
 class NexyCryptTest extends TestCase
 {
@@ -11,13 +12,15 @@ class NexyCryptTest extends TestCase
 
     public $domain = 'nexycrypt.esy.es';
 
+    public $keyPath = '/nexycrypt.private_key';
+
     /** @test */
     public function createKeyTest()
     {
         $cryptClient = new NexyCrypt(null, $this->url);
         $cryptClient->createKey();
 
-        $this->assertSame(true, file_exists(sys_get_temp_dir().'/nexycrypt.private_key'));
+        $this->assertSame(true, file_exists(sys_get_temp_dir().$this->keyPath));
     }
 
     /** @test */
@@ -66,10 +69,6 @@ class NexyCryptTest extends TestCase
 
         $this->assertSame(true, $result);
 
-        $result = verifyChallengeFail($cryptClient);
-
-        $this->assertSame(false, $result);
-
         $generateResult = $this->generateCertificateTest($cryptClient);
         $signResult = $this->signCertificateTest($cryptClient, $generateResult);
 
@@ -86,24 +85,59 @@ class NexyCryptTest extends TestCase
         $this->assertSame('object', gettype($resType));
     }
 
-    public function verifyChallengeFail(NexyCrypt $cryptClient)
+    /** @test */
+    public function acmeApiExceptionTest()
     {
-        $fileName = 'challenge';
+        /*
+        * when the nexycrypt.private_key is missing, we skip the step0 and step1 then do the step2 directly will throw the AcmeApiException message:
+        * [urn:acme:error:unauthorized] Must agree to subscriber agreement before any further actions
+        */
 
-        $this->deleteRemoteFile($fileName);
+        $client = new NexyCrypt(null, 'https://acme-staging.api.letsencrypt.org/');
 
-        // the challenge file is not existed.
-        $challenge = unserialize(file_get_contents('tests/public/'.'acme-challenge'.'/challenge'));
-        $result = $cryptClient->verifyChallenge($challenge);
+        $this->expectException(AcmeApiException::class);
 
-        $this->assertSame(false, $result);
+        @unlink(sys_get_temp_dir().$this->keyPath);
 
-        $this->addRemoteFile($fileName);
+        $client->register();
+        $client->agreeTerms();
+
+        try {
+            $authorization = $client->authorize($this->domain);
+
+            $challenge = $authorization->getChallenges()->getHttp01();
+        } catch (AcmeApiException $e) {
+            throw $e;
+        }
+    }
+
+     /** @test */
+    public function weakKeyTest()
+    {
+        /*
+        * when the nexycrypt.private_key is missing, we skip the step0 and step1 then do the step2 directly will throw the AcmeApiException message:
+        * [urn:acme:error:unauthorized] Must agree to subscriber agreement before any further actions
+        */
+
+        $client = new NexyCrypt('tests/account.key', 'https://acme-staging.api.letsencrypt.org/');
+
+        $this->expectException(AcmeApiException::class);
+
+        $client->register();
+        $client->agreeTerms();
+
+        try {
+            $authorization = $client->authorize($this->domain);
+
+            $challenge = $authorization->getChallenges()->getHttp01();
+        } catch (AcmeApiException $e) {
+            throw $e;
+        }
     }
 
     public function verifyChallengeTest(NexyCrypt $cryptClient)
     {
-        $challenge = unserialize(file_get_contents(__DIR__.'/public'.'/acme-challenge'.'/challenge'));
+        $challenge = unserialize(file_get_contents(__DIR__.'/'.'public'.'/acme-challenge'.'/challenge'));
         $response = $cryptClient->verifyChallenge($challenge);
 
         return $response;
@@ -131,48 +165,11 @@ class NexyCryptTest extends TestCase
         return $result;
     }
 
-    public function deleteRemoteFile($fileName)
+    public function getFtpAccount()
     {
-        //this web hosting is only for testing, DO NOT use for ypur production!
-        // it will be close in the irregular time.
+         $accounts = json_decode(file_get_contents('tests/ftpserver.json'), true);
 
-        $connect = ftp_connect($this->ftpServer);
-        $result = ftp_login($connect, $this->user, $this->password);
-
-        ftp_pasv($connect, true);
-
-        if($result === false) {
-            die('ftp logn is failed.');
-        }
-
-        ftp_chdir($connect, $this->wellKnown);
-        ftp_chdir($connect, $this->acmeChallenge);
-
-        ftp_delete($connect, $fileName);
-
-        ftp_close($connect);
-    }
-
-    public function addRemoteFile($fileName)
-    {
-        //this web hosting is only for testing, DO NOT use for ypur production!
-        // it will be close in the irregular time.
-
-        $connect = ftp_connect($this->ftpServer);
-        $result = ftp_login($connect, $this->user, $this->password);
-
-        ftp_pasv($connect, true);
-
-        if($result === false) {
-            die('ftp logn is failed.');
-        }
-
-        ftp_chdir($connect, $this->wellKnown);
-        ftp_chdir($connect, $this->acmeChallenge);
-
-        ftp_put($connect, $fileName, __DIR__.'/public/acme-challenge'.'/'.$fileName, FTP_ASCII);
-
-        ftp_close($connect);
+         return $accounts;
     }
 
 }
