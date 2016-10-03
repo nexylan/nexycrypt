@@ -34,7 +34,7 @@ $client = new NexyCrypt(null, 'https://acme-staging.api.letsencrypt.org/');
 try {
     if (0 === $step) {
         //create the required account private key
-        $client->createKey();
+        $client->create();
     }
 
     if (1 === $step) {

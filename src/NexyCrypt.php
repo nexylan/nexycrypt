@@ -79,9 +79,9 @@ class NexyCrypt
     }
 
     /**
-     * Generate private key.
+     * Generates private key.
      */
-    public function createKey()
+    public function create()
     {
         if (null === $this->privateKey) {
             $this->privateKey = new PrivateKey($this->privateKeyPath);
@@ -200,14 +200,14 @@ class NexyCrypt
 
         // @see http://stackoverflow.com/a/9710863/1731473
         fwrite($csrConf,
-            '[ req ]
-            distinguished_name = req_distinguished_name
-            req_extensions = v3_req
-            [req_distinguished_name]
-            [v3_req]
-            subjectAltName = '.$san.'
-            [v3_ca]
-        ');
+'[ req ]
+distinguished_name = req_distinguished_name
+req_extensions = v3_req
+[req_distinguished_name]
+[v3_req]
+subjectAltName = '.$san.'
+[v3_ca]
+');
 
         $csr = openssl_csr_new([
             'CN' => $domains[0],
@@ -370,8 +370,6 @@ class NexyCrypt
      */
     private function getAuthorization(array $data, $withChallenges = true)
     {
-        date_default_timezone_set("Asia/Taipei");
-
         $authorization = new Authorization();
 
         $authorization->setIdentifier(new Identifier($data['identifier']['type'], $data['identifier']['value']));

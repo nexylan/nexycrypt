@@ -15,10 +15,10 @@ class NexyCryptTest extends TestCase
     public $keyPath = '/nexycrypt.private_key';
 
     /** @test */
-    public function createKeyTest()
+    public function createTest()
     {
         $cryptClient = new NexyCrypt(null, $this->url);
-        $cryptClient->createKey();
+        $cryptClient->create();
 
         $this->assertSame(true, file_exists(sys_get_temp_dir().$this->keyPath));
     }
