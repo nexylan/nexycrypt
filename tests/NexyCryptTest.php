@@ -62,6 +62,7 @@ final class NexyCryptTest extends TestCase
         $cryptClient->agreeTerms();
         $response = $cryptClient->authorize($this->domain);
         $challenge = $response->getChallenges()->getHttp01();
+        $challengeStatus = $challenge->getSatus();
         $getDns = $response->getChallenges()->getDns01();
         $getTls = $response->getChallenges()->getTlsSni01();
         $getOfType = $response->getChallenges()->getOfType('http-01');
@@ -74,6 +75,7 @@ final class NexyCryptTest extends TestCase
         $this->assertInstanceOf(TlsSni01Challenge::class, $getTls);
         $this->assertTrue($getOfType instanceof ChallengeInterface);
         $this->assertTrue($getOfType instanceof AbstractChallenge);
+        $this->assertInternalType('string', $challengeStatus);
 
         $result = $this->verifyChallengeTest($cryptClient);
 
