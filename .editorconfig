@@ -2,13 +2,8 @@ root = true
 
 [*]
 end_of_line = lf
-indent_style = space
-charset = utf-8
 insert_final_newline = true
-trim_trailing_whitespace = true
 
-[*.yml]
-indent_size = 2
-
-[*.{xml,json,php}]
+[composer.json]
+indent_style = space
 indent_size = 4
