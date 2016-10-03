@@ -4,9 +4,10 @@ namespace Nexy\NexyCrypt\Tests;
 
 use PHPUnit\Framework\TestCase;
 use Nexy\NexyCrypt\NexyCrypt;
+use Nexy\NexyCrypt\PrivateKey;
 use Nexy\NexyCrypt\Exception\AcmeApiException;
 
-class NexyCryptTest extends TestCase
+final class NexyCryptTest extends TestCase
 {
     public $url = 'https://acme-staging.api.letsencrypt.org/';
 
@@ -14,7 +15,6 @@ class NexyCryptTest extends TestCase
 
     public $keyPath = '/nexycrypt.private_key';
 
-    /** @test */
     public function createTest()
     {
         $cryptClient = new NexyCrypt(null, $this->url);
@@ -23,35 +23,30 @@ class NexyCryptTest extends TestCase
         $this->assertSame(true, file_exists(sys_get_temp_dir().$this->keyPath));
     }
 
-    /** @test */
     public function registerTest()
     {
-        //have no own private key
-
+        // have no own private key
         $cryptClient = new NexyCrypt(null, $this->url);
         $response = $cryptClient->register();
 
         $this->assertSame(null, $response);
 
-        //have own private key
-
+        // have own private key
         $cryptClient = new NexyCrypt('./account.key', $this->url);
         $response = $cryptClient->register();
 
-        $this->assertSame(null, $response);
+        $this->assertNull($response);
     }
 
-    /** @test */
     public function agreeTermsTest()
     {
         $cryptClient = new NexyCrypt(null, $this->url);
         $cryptClient->register();
         $response = $cryptClient->agreeTerms();
 
-        $this->assertSame(null, $response);
+        $this->assertNull($response);
     }
 
-    /** @test */
     public function authorizeTest()
     {
         $cryptClient = new NexyCrypt(null, $this->url);
@@ -62,37 +57,35 @@ class NexyCryptTest extends TestCase
         $checkFileName = $challenge->getFileName();
         $checkFileContent = $challenge->getFileContent();
 
-        $this->assertSame(true, isset($checkFileName));
-        $this->assertSame(true, isset($checkFileContent));
+        $this->assertTrue(isset($checkFileName));
+        $this->assertTrue(isset($checkFileContent));
 
         $result = $this->verifyChallengeTest($cryptClient);
 
-        $this->assertSame(true, $result);
+        $this->assertTrue($result);
 
         $generateResult = $this->generateCertificateTest($cryptClient);
         $signResult = $this->signCertificateTest($cryptClient, $generateResult);
 
         foreach ($generateResult->getFilesArray() as $filename => $content) {
-            $this->assertSame(true, isset($content));
+            $this->assertTrue(isset($content));
         }
 
         foreach ($signResult->getFilesArray() as $filename => $content) {
-            $this->assertSame(true, isset($content));
+            $this->assertTrue(isset($content));
         }
 
         $resType = $this->getPrivateKeyTest($cryptClient);
 
-        $this->assertSame('object', gettype($resType));
+        $this->assertInstanceOf(PrivateKey::class, $resType);
     }
 
-    /** @test */
+    /*
+    * when the nexycrypt.private_key is missing, we skip the step0 and step1 then do the step2 directly will throw the AcmeApiException message:
+    * [urn:acme:error:unauthorized] Must agree to subscriber agreement before any further actions
+    */
     public function acmeApiExceptionTest()
     {
-        /*
-        * when the nexycrypt.private_key is missing, we skip the step0 and step1 then do the step2 directly will throw the AcmeApiException message:
-        * [urn:acme:error:unauthorized] Must agree to subscriber agreement before any further actions
-        */
-
         $client = new NexyCrypt(null, 'https://acme-staging.api.letsencrypt.org/');
 
         $this->expectException(AcmeApiException::class);
@@ -111,14 +104,12 @@ class NexyCryptTest extends TestCase
         }
     }
 
-     /** @test */
+    /*
+    * when the nexycrypt.private_key is missing, we skip the step0 and step1 then do the step2 directly will throw the AcmeApiException message:
+    * [urn:acme:error:unauthorized] Must agree to subscriber agreement before any further actions
+    */
     public function weakKeyTest()
     {
-        /*
-        * when the nexycrypt.private_key is missing, we skip the step0 and step1 then do the step2 directly will throw the AcmeApiException message:
-        * [urn:acme:error:unauthorized] Must agree to subscriber agreement before any further actions
-        */
-
         $client = new NexyCrypt('tests/account.key', 'https://acme-staging.api.letsencrypt.org/');
 
         $this->expectException(AcmeApiException::class);
