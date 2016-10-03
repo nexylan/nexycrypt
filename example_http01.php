@@ -81,7 +81,7 @@ try {
         }
     }
 } catch (AcmeApiException $e) {
-    var_dump($e->getDetails());
+    echo $e->getDetails();
 
     exit(1);
 }
