@@ -41,7 +41,7 @@ before_script:
   - echo "zend_extension=xdebug.so" >> ~/.phpenv/versions/$(phpenv version-name)/etc/php.ini
 
 script:
-  - vendor/bin/phpunit
+  - phpunit
 
 after_script:
   - coveralls -v
