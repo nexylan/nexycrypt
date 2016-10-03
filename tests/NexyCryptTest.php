@@ -15,8 +15,7 @@ final class NexyCryptTest extends TestCase
 
     public $keyPath = '/nexycrypt.private_key';
 
-    /** @test */
-    public function createTest()
+    public function testCreate()
     {
         $cryptClient = new NexyCrypt(null, $this->url);
         $cryptClient->create();
@@ -24,8 +23,7 @@ final class NexyCryptTest extends TestCase
         $this->assertSame(true, file_exists(sys_get_temp_dir().$this->keyPath));
     }
 
-    /** @test */
-    public function registerTest()
+    public function testRegister()
     {
         // have no own private key
         $cryptClient = new NexyCrypt(null, $this->url);
@@ -40,8 +38,7 @@ final class NexyCryptTest extends TestCase
         $this->assertNull($response);
     }
 
-    /** @test */
-    public function agreeTermsTest()
+    public function testAgreeTerms()
     {
         $cryptClient = new NexyCrypt(null, $this->url);
         $cryptClient->register();
@@ -50,8 +47,7 @@ final class NexyCryptTest extends TestCase
         $this->assertNull($response);
     }
 
-    /** @test */
-    public function authorizeTest()
+    public function testAuthorize()
     {
         $cryptClient = new NexyCrypt(null, $this->url);
         $cryptClient->register();
@@ -88,8 +84,7 @@ final class NexyCryptTest extends TestCase
     * when the nexycrypt.private_key is missing, we skip the step0 and step1 then do the step2 directly will throw the AcmeApiException message:
     * [urn:acme:error:unauthorized] Must agree to subscriber agreement before any further actions
     */
-    /** @test */
-    public function acmeApiExceptionTest()
+    public function testAcmeApiException()
     {
         $client = new NexyCrypt(null, 'https://acme-staging.api.letsencrypt.org/');
 
@@ -113,8 +108,7 @@ final class NexyCryptTest extends TestCase
     * when the nexycrypt.private_key is missing, we skip the step0 and step1 then do the step2 directly will throw the AcmeApiException message:
     * [urn:acme:error:unauthorized] Must agree to subscriber agreement before any further actions
     */
-    /** @test */
-    public function weakKeyTest()
+    public function testWeakKey()
     {
         $client = new NexyCrypt('tests/account.key', 'https://acme-staging.api.letsencrypt.org/');
 
