@@ -13,7 +13,12 @@ if ($argc > 2) {
     exit(1);
 }
 
-$step = intval($argv[1]);
+if(isset($argv[1])) {
+    $step = intval($argv[1]);
+} else {
+    echo 'You have to pass the step arguments.'.PHP_EOL;
+    exit(1);
+}
 
 $accounts = json_decode(file_get_contents('tests/ftpserver.json'), true);
 $domain = $accounts['ftpserver'];
