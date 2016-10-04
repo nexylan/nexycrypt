@@ -21,8 +21,6 @@ final class NexyCryptTest extends TestCase
 {
     public $url = 'https://acme-staging.api.letsencrypt.org/';
 
-    public $domain = 'nexycrypt.96.lt';
-
     public $keyPath = '/nexycrypt.private_key';
 
     public function testCreate()
@@ -62,7 +60,8 @@ final class NexyCryptTest extends TestCase
         $cryptClient = new NexyCrypt(null, $this->url);
         $cryptClient->register();
         $cryptClient->agreeTerms();
-        $response = $cryptClient->authorize($this->domain);
+        $ftpServer = json_decode(file_get_contents('tests/ftpserver.json'), true);
+        $response = $cryptClient->authorize($ftpServer['ftpserver']);
         $challenge = $response->getChallenges()->getHttp01();
         $getDns = $response->getChallenges()->getDns01();
         $getTls = $response->getChallenges()->getTlsSni01();
@@ -121,7 +120,8 @@ final class NexyCryptTest extends TestCase
         $client->agreeTerms();
 
         try {
-            $authorization = $client->authorize($this->domain);
+            $ftpServer = json_decode(file_get_contents('tests/ftpserver.json'), true);
+            $authorization = $client->authorize($ftpServer['ftpserver']);
 
             $challenge = $authorization->getChallenges()->getHttp01();
         } catch (AcmeApiException $e) {
@@ -143,7 +143,8 @@ final class NexyCryptTest extends TestCase
         $client->agreeTerms();
 
         try {
-            $authorization = $client->authorize($this->domain);
+            $ftpServer = json_decode(file_get_contents('tests/ftpserver.json'), true);
+            $authorization = $client->authorize($ftpServer['ftpserver']);
 
             $challenge = $authorization->getChallenges()->getHttp01();
         } catch (AcmeApiException $e) {
@@ -246,7 +247,8 @@ final class NexyCryptTest extends TestCase
         $cryptClient = new NexyCrypt(null, $this->url);
         $cryptClient->register();
         $cryptClient->agreeTerms();
-        $response = $cryptClient->authorize($this->domain);
+        $ftpServer = json_decode(file_get_contents('tests/ftpserver.json'), true);
+        $response = $cryptClient->authorize($ftpServer['ftpserver']);
         $challenge = $response->getChallenges()->getHttp01();
 
         $result = $this->verifyChallengeTest($cryptClient);
@@ -311,7 +313,8 @@ final class NexyCryptTest extends TestCase
     public function fakeAuthorize()
     {
         $client = new NexyCrypt(null, 'https://acme-staging.api.letsencrypt.org/');
-        $authorization = $client->authorize($this->domain);
+        $ftpServer = json_decode(file_get_contents('tests/ftpserver.json'), true);
+        $authorization = $client->authorize($ftpServer['ftpserver']);
 
         $challenge = $authorization->getChallenges()->getHttp01();
         
@@ -332,7 +335,8 @@ final class NexyCryptTest extends TestCase
 
     public function generateCertificateTest(NexyCrypt $certClient)
     {
-        $certificate = $certClient->generateCertificate([$this->domain]);
+        $ftpServer = json_decode(file_get_contents('tests/ftpserver.json'), true);
+        $certificate = $certClient->generateCertificate([$ftpServer['ftpserver']]);
 
         return $certificate;
 
