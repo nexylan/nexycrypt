@@ -35,10 +35,10 @@ install:
 
 before_script:
   - composer require phpunit/phpunit
-  - travis_wait php generate_fake.php nexycrypt.esy.es 0
-  - travis_wait php generate_fake.php nexycrypt.esy.es 1
-  - travis_wait php generate_fake.php nexycrypt.esy.es 2
-  - travis_wait php generate_fake.php nexycrypt.esy.es 3
+  - travis_wait php generate_fake.php 0
+  - travis_wait php generate_fake.php 1
+  - travis_wait php generate_fake.php 2
+  - travis_wait php generate_fake.php 3
 
 script:
   - vendor/bin/phpunit

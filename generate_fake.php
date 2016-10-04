@@ -8,16 +8,15 @@ use Nexy\NexyCrypt\NexyCrypt;
 
 require_once __DIR__.'/vendor/autoload.php';
 
-if ($argc < 3) {
+if ($argc !== 1) {
     echo 'You have to pass domain and step arguments.'.PHP_EOL;
     exit(1);
 }
 
-$domains = [];
-for ($a = 1; $a < $argc - 1; ++$a) {
-    $domains[] = $argv[$a];
-}
-$step = intval($argv[$a]);
+$step = intval($argv[0]);
+
+$accounts = json_decode(file_get_contents('tests/ftpserver.json'), true);
+$domain = $accounts['ftpserver'];
 
 // First commented line is for production.
 //$client = new NexyCrypt();
@@ -40,15 +39,13 @@ try {
 
         @mkdir('tests/public');
 
-        foreach ($domains as $domain) {
-            $authorization = $client->authorize($domain);
+        $authorization = $client->authorize($domain);
 
-            $challenge = $authorization->getChallenges()->getHttp01();
+        $challenge = $authorization->getChallenges()->getHttp01();
 
-            @mkdir('tests/public/acme-challenge');
-            file_put_contents('tests/public/'.'acme-challenge'.'/'.$challenge->getFileName(), $challenge->getFileContent());
-            file_put_contents('tests/public/'.'acme-challenge'.'/challenge', serialize($challenge));
-        }
+        @mkdir('tests/public/acme-challenge');
+        file_put_contents('tests/public/'.'acme-challenge'.'/'.$challenge->getFileName(), $challenge->getFileContent());
+        file_put_contents('tests/public/'.'acme-challenge'.'/challenge', serialize($challenge));
     }
 
     if (3 === $step) {
