@@ -8,7 +8,7 @@ use Nexy\NexyCrypt\NexyCrypt;
 
 require_once __DIR__.'/vendor/autoload.php';
 
-if ($argc !== 2) {
+if ($argc > 2) {
     echo 'You have to pass too many arguments.'.PHP_EOL;
     exit(1);
 }

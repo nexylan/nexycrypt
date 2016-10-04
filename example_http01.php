@@ -81,7 +81,7 @@ try {
         }
     }
 } catch (AcmeApiException $e) {
-    echo $e->getDetails();
+    echo $e->getDetails().PHP_EOL;
 
     exit(1);
 }
