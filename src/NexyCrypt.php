@@ -79,13 +79,21 @@ class NexyCrypt
     }
 
     /**
-     * Generates or read privates key and starts registration.
+     * Generates private key.
      */
-    public function register()
+    public function create()
     {
         if (null === $this->privateKey) {
             $this->privateKey = new PrivateKey($this->privateKeyPath);
         }
+    }
+
+    /**
+     * Read private key and starts registration.
+     */
+    public function register()
+    {
+        $this->privateKey = $this->getPrivateKey();
 
         try {
             $this->signedPostRequest(null === $this->regLocation ? 'acme/new-reg' : $this->regLocation, [
@@ -120,6 +128,8 @@ class NexyCrypt
      */
     public function authorize($domain)
     {
+        $this->privateKey = $this->getPrivateKey();
+
         $response = $this->signedPostRequest('acme/new-authz', [
             'resource' => 'new-authz',
             'identifier' => [
@@ -138,6 +148,8 @@ class NexyCrypt
      */
     public function verifyChallenge(ChallengeInterface $challenge)
     {
+        $this->privateKey = $this->getPrivateKey();
+
         $this->signedPostRequest($challenge->getUri(), [
             'resource' => 'challenge',
             'type' => $challenge->getType(),
@@ -148,7 +160,7 @@ class NexyCrypt
         $authorization = null;
         do {
             usleep(100);
-            $response = $this->request('GET', $this->links['up']);
+            $response = $this->request('GET', $this->links['up'], ['verify' =>  __DIR__.'/cacert.pem']);
             $authorization = $this->getAuthorization(json_decode($response->getBody()->getContents(), true), false);
 
             if ('invalid' === $authorization->getStatus()) {
@@ -169,7 +181,11 @@ class NexyCrypt
     public function generateCertificate(array $domains)
     {
         $certificate = new Certificate();
-        $privateKey = openssl_pkey_new();
+        $config = array(
+            'digest_alg' => 'SHA256',
+            'private_key_bits' => 4096,
+        );
+        $privateKey = openssl_pkey_new($config);
         $privateKeyDetails = openssl_pkey_get_details($privateKey);
         openssl_pkey_export($privateKey, $privateKeyOutput);
 
@@ -201,7 +217,8 @@ subjectAltName = '.$san.'
             'O' => 'Unknown',
         ], $privateKey, [
             'config' => $csrConfPath,
-            'digest_alg' => 'sha256',
+            'digest_alg' => 'SHA256',
+            'private_key_bits' => 4096,
         ]);
         openssl_csr_export($csr, $csrOut);
         $certificate->setCsr($csrOut);
@@ -222,6 +239,8 @@ subjectAltName = '.$san.'
      */
     public function signCertificate(Certificate $certificate)
     {
+        $this->privateKey = $this->getPrivateKey();
+
         $this->signedPostRequest('acme/new-cert', [
             'resource' => 'new-cert',
             'csr' => Base64Url::encode($certificate->getRawCsr()),
@@ -230,14 +249,14 @@ subjectAltName = '.$san.'
         $certLocation = $this->lastResponseHeaders['Location'][0];
 
         do {
-            $response = $this->request('GET', $certLocation);
+            $response = $this->request('GET', $certLocation, ['verify' =>  __DIR__.'/cacert.pem']);
         } while (200 !== $response->getStatusCode());
 
         $certificates = [];
         $certificates[] = $this->parsePemFromBody($response->getBody()->getContents());
 
         // Get chain
-        $response = $this->request('GET', $this->links['up']);
+        $response = $this->request('GET', $this->links['up'], ['verify' =>  __DIR__.'/cacert.pem']);
         $certificates[] = $this->parsePemFromBody($response->getBody()->getContents());
 
         $certificate->setFullchain(implode("\n", $certificates));
@@ -252,6 +271,7 @@ subjectAltName = '.$san.'
      */
     public function getPrivateKey()
     {
+        $this->privateKey = new PrivateKey($this->privateKeyPath);
         return $this->privateKey;
     }
 
@@ -281,6 +301,7 @@ subjectAltName = '.$san.'
         $signed64 = Base64Url::encode($this->privateKey->sign($protected64.'.'.$payload64));
 
         return $this->request('POST', $uri, [
+            'verify' => __DIR__.'/cacert.pem',
             'json' => [
                 'header' => $header,
                 'protected' => $protected64,
@@ -335,7 +356,7 @@ subjectAltName = '.$san.'
     private function getLastNonce()
     {
         if (!isset($this->lastResponseHeaders['Replay-Nonce'][0])) {
-            $this->request('GET', 'directory');
+            $this->request('GET', 'directory', ['verify' =>  __DIR__.'/cacert.pem']);
         }
 
         return $this->lastResponseHeaders['Replay-Nonce'][0];
