@@ -8,12 +8,12 @@ use Nexy\NexyCrypt\NexyCrypt;
 
 require_once __DIR__.'/vendor/autoload.php';
 
-if ($argc !== 1) {
-    echo 'You have to pass domain and step arguments.'.PHP_EOL;
+if ($argc !== 2) {
+    echo 'You have to pass too many arguments.'.PHP_EOL;
     exit(1);
 }
 
-$step = intval($argv[0]);
+$step = intval($argv[1]);
 
 $accounts = json_decode(file_get_contents('tests/ftpserver.json'), true);
 $domain = $accounts['ftpserver'];
