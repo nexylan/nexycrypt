@@ -301,7 +301,7 @@ subjectAltName = '.$san.'
         $signed64 = Base64Url::encode($this->privateKey->sign($protected64.'.'.$payload64));
 
         return $this->request('POST', $uri, [
-            'verify' => './cacert.pem',
+            'verify' => __DIR__.'/cacert.pem',
             'json' => [
                 'header' => $header,
                 'protected' => $protected64,
@@ -320,7 +320,7 @@ subjectAltName = '.$san.'
      *
      * @return ResponseInterface
      */
-    private function request($method, $uri, array $options = ['verify' => './cacert.pem'])
+    private function request($method, $uri, array $options = ['verify' =>  __DIR__.'/cacert.pem'])
     {
         try {
             $response = $this->httpClient->request($method, $uri, $options);

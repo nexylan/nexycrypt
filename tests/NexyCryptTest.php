@@ -5,10 +5,12 @@ namespace Nexy\NexyCrypt\Tests;
 use PHPUnit\Framework\TestCase;
 use Nexy\NexyCrypt\NexyCrypt;
 use Nexy\NexyCrypt\PrivateKey;
+use Nexy\NexyCrypt\Certificate;
 use Nexy\NexyCrypt\Exception\AcmeApiException;
 use Nexy\NexyCrypt\Authorization\Authorization;
 use Nexy\NexyCrypt\Authorization\Identifier;
 use Nexy\NexyCrypt\Authorization\Challenge;
+use Nexy\NexyCrypt\Authorization\Challenge\Http01Challenge;
 use Nexy\NexyCrypt\Authorization\Challenge\Dns01Challenge;
 use Nexy\NexyCrypt\Authorization\Challenge\TlsSni01Challenge ;
 use Nexy\NexyCrypt\Authorization\Challenge\ChallengeInterface;
@@ -19,7 +21,7 @@ final class NexyCryptTest extends TestCase
 {
     public $url = 'https://acme-staging.api.letsencrypt.org/';
 
-    public $domain = 'nexycrypt.esy.es';
+    public $domain = 'nexycrypt.96.lt';
 
     public $keyPath = '/nexycrypt.private_key';
 
@@ -62,7 +64,6 @@ final class NexyCryptTest extends TestCase
         $cryptClient->agreeTerms();
         $response = $cryptClient->authorize($this->domain);
         $challenge = $response->getChallenges()->getHttp01();
-        $challengeStatus = $challenge->getSatus();
         $getDns = $response->getChallenges()->getDns01();
         $getTls = $response->getChallenges()->getTlsSni01();
         $getOfType = $response->getChallenges()->getOfType('http-01');
@@ -74,8 +75,6 @@ final class NexyCryptTest extends TestCase
         $this->assertInstanceOf(Dns01Challenge::class, $getDns);
         $this->assertInstanceOf(TlsSni01Challenge::class, $getTls);
         $this->assertTrue($getOfType instanceof ChallengeInterface);
-        $this->assertTrue($getOfType instanceof AbstractChallenge);
-        $this->assertInternalType('string', $challengeStatus);
 
         $result = $this->verifyChallengeTest($cryptClient);
 
@@ -92,7 +91,8 @@ final class NexyCryptTest extends TestCase
             $this->assertTrue(isset($content));
         }
 
-        $result = $this->getMethodCertificateTest($signResult);
+        $result = $this->getMethodCertificateTest($cryptClient, $signResult);
+        $fileArr = $signResult->getFilesArray();
 
         $this->assertInstanceOf(PrivateKey::class, $result['resType']);
         $this->assertSame($fileArr['privkey.pem'], $result['getPrivKey']);
@@ -214,6 +214,114 @@ final class NexyCryptTest extends TestCase
         $this->assertNull($challenge);
     }
 
+    public function testHttp01Challenge()
+    {
+        $httpChallenge = new Http01Challenge();
+        $verifyDir = $httpChallenge->getDirectory();
+        $verifyPath = $httpChallenge->getPath();
+
+        $this->assertInternalType('string', $verifyDir);
+        $this->assertInternalType('string', $verifyPath);
+    }
+
+    public function testDns01Challenge()
+    {
+        $dnsChallenge = new Dns01Challenge();
+        $recordName = $dnsChallenge->getRecordName();
+        $recordType = $dnsChallenge->getRecordType();
+        $recordContent = $dnsChallenge->getRecordContent();
+
+        $this->assertInternalType('string', $recordName);
+        $this->assertInternalType('string', $recordType);
+        $this->assertInternalType('string', $recordContent);
+    }
+
+    public function testAuthInvalid()
+    {
+        $this->fakeCreate();
+        $this->fakeRegister();
+        $this->fakeAuthorize();
+        $this->uploadFile();
+
+        $cryptClient = new NexyCrypt(null, $this->url);
+        $cryptClient->register();
+        $cryptClient->agreeTerms();
+        $response = $cryptClient->authorize($this->domain);
+        $challenge = $response->getChallenges()->getHttp01();
+
+        $result = $this->verifyChallengeTest($cryptClient);
+
+        $this->assertFalse($result);
+    }
+
+    public function uploadFile()
+    {
+        $accounts = json_decode(file_get_contents('tests/ftpserver.json'), true);
+        $user = $accounts['username'];
+        $password = $accounts['password'];
+        $ftpServer = $accounts['ftpserver'];
+
+        $connectId = ftp_connect($ftpServer);
+
+        $loginResult = ftp_login($connectId, $user, $password);
+
+        ftp_pasv($connectId, true);
+
+        if (!$loginResult) {
+            echo "can't login";
+            exit(1);
+        }
+
+        @ftp_mkdir($connectId, '.well-known');
+        @ftp_mkdir($connectId, '.well-known/acme-challenge');
+
+        ftp_chdir($connectId, '.well-known/acme-challenge');
+
+        $filePath = 'tests/public/acme-challenge';
+        $filesArr = scandir($filePath);
+        $fileCount = count($filesArr);
+        for($index=2;$index<$fileCount;$index++) {
+            if($filesArr[$index] !== 'challenge') {
+                continue;
+            }
+
+            $result = ftp_put($connectId, $filesArr[$index], $filePath.'/'.$filesArr[$index], FTP_ASCII);
+            if ($result === false) {
+                echo 'cannot upload file: '.$filesArr[$index];
+                exit(1);
+            }
+        }
+
+        ftp_close($connectId);
+    }
+
+    public function fakeCreate()
+    {
+        $client = new NexyCrypt(null, 'https://acme-staging.api.letsencrypt.org/');
+        $client->create();
+    }
+
+    public function fakeRegister()
+    {
+        $client = new NexyCrypt(null, 'https://acme-staging.api.letsencrypt.org/');
+        $client->register();
+        $client->agreeTerms();
+    }
+
+    public function fakeAuthorize()
+    {
+        $client = new NexyCrypt(null, 'https://acme-staging.api.letsencrypt.org/');
+        $authorization = $client->authorize($this->domain);
+
+        $challenge = $authorization->getChallenges()->getHttp01();
+        
+        $challengePath = 'tests/public/acme-challenge';
+        @unlink($challengePath);
+        @mkdir($challengePath);
+        file_put_contents($challengePath.'/'.$challenge->getFileName(), $challenge->getFileContent());
+        file_put_contents($challengePath.'/challenge', serialize($challenge));
+    }
+
     public function verifyChallengeTest(NexyCrypt $cryptClient)
     {
         $challenge = unserialize(file_get_contents(__DIR__.'/'.'public'.'/acme-challenge'.'/challenge'));
@@ -251,7 +359,7 @@ final class NexyCryptTest extends TestCase
          return $accounts;
     }
 
-    public function getMethodCertificateTest(Certificate $signResult)
+    public function getMethodCertificateTest(NexyCrypt $cryptClient, Certificate $signResult)
     {
         $resType = $this->getPrivateKeyTest($cryptClient);
         $fileArr = $signResult->getFilesArray();

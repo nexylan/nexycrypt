@@ -61,7 +61,7 @@ try {
         $password = $accounts['password'];
         $ftpServer = $accounts['ftpserver'];
 
-        // set up basic ssl connection
+        // set up basic ftp connection
         $connectId = ftp_connect($ftpServer);
 
         // login with username and password
@@ -76,10 +76,9 @@ try {
         }
 
         @ftp_mkdir($connectId, '.well-known');
-        @ftp_mkdir($connectId, 'acme-challenge');
+        @ftp_mkdir($connectId, '.well-known/acme-challenge');
 
-        ftp_chdir($connectId, '.well-known');
-        ftp_chdir($connectId, 'acme-challenge');
+        ftp_chdir($connectId, '.well-known/acme-challenge');
 
         // upload the files from the folders
         $filePath = 'tests/public/acme-challenge';
