@@ -160,7 +160,7 @@ class NexyCrypt
         $authorization = null;
         do {
             usleep(100);
-            $response = $this->request('GET', $this->links['up']);
+            $response = $this->request('GET', $this->links['up'], ['verify' =>  __DIR__.'/cacert.pem']);
             $authorization = $this->getAuthorization(json_decode($response->getBody()->getContents(), true), false);
 
             if ('invalid' === $authorization->getStatus()) {
@@ -249,14 +249,14 @@ subjectAltName = '.$san.'
         $certLocation = $this->lastResponseHeaders['Location'][0];
 
         do {
-            $response = $this->request('GET', $certLocation);
+            $response = $this->request('GET', $certLocation, ['verify' =>  __DIR__.'/cacert.pem']);
         } while (200 !== $response->getStatusCode());
 
         $certificates = [];
         $certificates[] = $this->parsePemFromBody($response->getBody()->getContents());
 
         // Get chain
-        $response = $this->request('GET', $this->links['up']);
+        $response = $this->request('GET', $this->links['up'], ['verify' =>  __DIR__.'/cacert.pem']);
         $certificates[] = $this->parsePemFromBody($response->getBody()->getContents());
 
         $certificate->setFullchain(implode("\n", $certificates));
@@ -320,7 +320,7 @@ subjectAltName = '.$san.'
      *
      * @return ResponseInterface
      */
-    private function request($method, $uri, array $options = ['verify' =>  __DIR__.'/cacert.pem'])
+    private function request($method, $uri, array $options = [])
     {
         try {
             $response = $this->httpClient->request($method, $uri, $options);
@@ -356,7 +356,7 @@ subjectAltName = '.$san.'
     private function getLastNonce()
     {
         if (!isset($this->lastResponseHeaders['Replay-Nonce'][0])) {
-            $this->request('GET', 'directory');
+            $this->request('GET', 'directory', ['verify' =>  __DIR__.'/cacert.pem']);
         }
 
         return $this->lastResponseHeaders['Replay-Nonce'][0];
