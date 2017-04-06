@@ -56,6 +56,7 @@ try {
         foreach ($domains as $domain) {
             /** @var Http01Challenge $challenge */
             $challenge = unserialize(file_get_contents('public/'.$domain.'/challenge'));
+            dump($challenge);
 
             if (false === $client->verifyChallenge($challenge)) {
                 echo sprintf('Invalid challenge for %s', $domain).PHP_EOL;
