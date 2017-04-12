@@ -2,9 +2,11 @@
 
 namespace Nexy\NexyCrypt\Bridge\Symfony\DependencyInjection;
 
+use Symfony\Bundle\MonologBundle\MonologBundle;
 use Symfony\Component\Config\FileLocator;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\DependencyInjection\Loader\XmlFileLoader;
+use Symfony\Component\DependencyInjection\Reference;
 use Symfony\Component\HttpKernel\DependencyInjection\Extension;
 
 /**
@@ -27,5 +29,11 @@ final class NexyCryptExtension extends Extension
 
         $loader = new XmlFileLoader($container, new FileLocator(__DIR__.'/../Resources/config'));
         $loader->load('sdk.xml');
+
+        if (class_exists(MonologBundle::class)) {
+            $container->getDefinition('nexy_crypt.sdk')->addMethodCall('setLogger', [
+                new Reference('logger'),
+            ]);
+        }
     }
 }

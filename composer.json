@@ -21,9 +21,12 @@
         "symfony/config": "^2.8 || ^3.0",
         "symfony/dependency-injection": "^2.8 || ^3.0",
         "symfony/http-kernel": "^2.8 || ^3.0",
-        "symfony/var-dumper": "^2.7 || ^3.0"
+        "symfony/var-dumper": "^2.7 || ^3.0",
+        "monolog/monolog": "^1.22"
     },
     "suggest": {
+        "monolog/monolog": "A PSR-3 compatible logger",
+        "psr/log": "To log ACME API requests and responses",
         "symfony/config": "For Symfony integration as a bundle",
         "symfony/http-kernel": "For Symfony integration as a bundle",
         "symfony/dependency-injection": "For Symfony integration as a bundle"

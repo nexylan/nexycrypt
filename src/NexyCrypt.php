@@ -10,11 +10,13 @@ use Nexy\NexyCrypt\Authorization\Challenge\ChallengeInterface;
 use Nexy\NexyCrypt\Authorization\Identifier;
 use Nexy\NexyCrypt\Exception\AcmeApiException;
 use Psr\Http\Message\ResponseInterface;
+use Psr\Log\LoggerAwareInterface;
+use Psr\Log\LoggerInterface;
 
 /**
  * @author Sullivan Senechal <soullivaneuh@gmail.com>
  */
-class NexyCrypt
+class NexyCrypt implements LoggerAwareInterface
 {
     /**
      * @var \GuzzleHttp\Client
@@ -56,6 +58,11 @@ class NexyCrypt
     private $regLocation;
 
     /**
+     * @var LoggerInterface|null
+     */
+    private $logger = null;
+
+    /**
      * @param string $privateKeyPath
      * @param string $endpoint
      */
@@ -76,6 +83,14 @@ class NexyCrypt
                 'Content-Type' => 'application/json',
             ],
         ]);
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function setLogger(LoggerInterface $logger)
+    {
+        $this->logger = $logger;
     }
 
     /**
@@ -128,7 +143,7 @@ class NexyCrypt
             ],
         ]);
 
-        return $this->getAuthorization(json_decode($response->getBody()->getContents(), true));
+        return $this->getAuthorization(json_decode((string) $response->getBody(), true));
     }
 
     /**
@@ -149,7 +164,7 @@ class NexyCrypt
         do {
             usleep(100);
             $response = $this->request('GET', $this->links['up']);
-            $authorization = $this->getAuthorization(json_decode($response->getBody()->getContents(), true), false);
+            $authorization = $this->getAuthorization(json_decode((string) $response->getBody(), true), false);
 
             if ('invalid' === $authorization->getStatus()) {
                 return false;
@@ -234,11 +249,11 @@ subjectAltName = '.$san.'
         } while (200 !== $response->getStatusCode());
 
         $certificates = [];
-        $certificates[] = $this->parsePemFromBody($response->getBody()->getContents());
+        $certificates[] = $this->parsePemFromBody((string) $response->getBody());
 
         // Get chain
         $response = $this->request('GET', $this->links['up']);
-        $certificates[] = $this->parsePemFromBody($response->getBody()->getContents());
+        $certificates[] = $this->parsePemFromBody((string) $response->getBody());
 
         $certificate->setFullchain(implode("\n", $certificates));
         $certificate->setCert(array_shift($certificates));
@@ -303,9 +318,17 @@ subjectAltName = '.$san.'
     {
         try {
             $response = $this->httpClient->request($method, $uri, $options);
+
+            if ($this->logger) {
+                $this->logger->info("Request {$uri}", json_decode((string) $response->getBody(), true));
+            }
         } catch (ClientException $e) {
             $response = $e->getResponse();
-            $exceptionData = json_decode($response->getBody()->getContents(), true);
+            $exceptionData = json_decode((string) $response->getBody(), true);
+
+            if ($this->logger) {
+                $this->logger->error("Request {$uri}", $exceptionData);
+            }
 
             throw new AcmeApiException($exceptionData['type'], $exceptionData['detail'], $exceptionData['status']);
         } finally {
