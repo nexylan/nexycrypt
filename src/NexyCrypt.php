@@ -320,14 +320,14 @@ subjectAltName = '.$san.'
             $response = $this->httpClient->request($method, $uri, $options);
 
             if ($this->logger) {
-                $this->logger->info("Request {$uri}", (array) json_decode((string) $response->getBody(), true));
+                $this->logger->info("[{$method}] {$uri}", (array) json_decode((string) $response->getBody(), true));
             }
         } catch (ClientException $e) {
             $response = $e->getResponse();
             $exceptionData = (array) json_decode((string) $response->getBody(), true);
 
             if ($this->logger) {
-                $this->logger->error("Request {$uri}", $exceptionData);
+                $this->logger->error("[{$method}] {$uri}", $exceptionData);
             }
 
             throw new AcmeApiException($exceptionData['type'], $exceptionData['detail'], $exceptionData['status']);
