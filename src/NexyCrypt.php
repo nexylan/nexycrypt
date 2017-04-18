@@ -320,11 +320,11 @@ subjectAltName = '.$san.'
             $response = $this->httpClient->request($method, $uri, $options);
 
             if ($this->logger) {
-                $this->logger->info("Request {$uri}", json_decode((string) $response->getBody(), true));
+                $this->logger->info("Request {$uri}", (array) json_decode((string) $response->getBody(), true));
             }
         } catch (ClientException $e) {
             $response = $e->getResponse();
-            $exceptionData = json_decode((string) $response->getBody(), true);
+            $exceptionData = (array) json_decode((string) $response->getBody(), true);
 
             if ($this->logger) {
                 $this->logger->error("Request {$uri}", $exceptionData);
