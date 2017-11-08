@@ -3,12 +3,22 @@
 namespace Nexy\NexyCrypt;
 
 use Base64Url\Base64Url;
-use GuzzleHttp\Exception\ClientException;
+use Http\Client\Common\HttpMethodsClient;
+use Http\Client\Common\Plugin\BaseUriPlugin;
+use Http\Client\Common\Plugin\ErrorPlugin;
+use Http\Client\Common\Plugin\HeaderDefaultsPlugin;
+use Http\Client\Common\PluginClient;
+use Http\Client\Exception\HttpException;
+use Http\Client\HttpClient;
+use Http\Discovery\HttpClientDiscovery;
+use Http\Discovery\MessageFactoryDiscovery;
+use Http\Discovery\UriFactoryDiscovery;
 use Nexy\NexyCrypt\Authorization\Authorization;
 use Nexy\NexyCrypt\Authorization\Challenge\ChallengeFactory;
 use Nexy\NexyCrypt\Authorization\Challenge\ChallengeInterface;
 use Nexy\NexyCrypt\Authorization\Identifier;
 use Nexy\NexyCrypt\Exception\AcmeApiException;
+use Nexy\NexyCrypt\Exception\RuntimeException;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Log\LoggerAwareInterface;
 use Psr\Log\LoggerInterface;
@@ -19,7 +29,7 @@ use Psr\Log\LoggerInterface;
 class NexyCrypt implements LoggerAwareInterface
 {
     /**
-     * @var \GuzzleHttp\Client
+     * @var HttpMethodsClient
      */
     private $httpClient;
 
@@ -65,8 +75,9 @@ class NexyCrypt implements LoggerAwareInterface
     /**
      * @param string $privateKeyPath
      * @param string $endpoint
+     * @param HttpClient|null $httpClient
      */
-    public function __construct($privateKeyPath = null, $endpoint = null)
+    public function __construct($privateKeyPath = null, $endpoint = null, HttpClient $httpClient = null)
     {
         $this->privateKeyPath = null === $privateKeyPath
             ? sys_get_temp_dir().'/nexycrypt.private_key'
@@ -76,13 +87,22 @@ class NexyCrypt implements LoggerAwareInterface
             $this->endpoint = $endpoint;
         }
 
-        $this->httpClient = new \GuzzleHttp\Client([
-            'base_uri' => $this->endpoint,
-            'headers' => [
-                'Accept' => 'application/json',
-                'Content-Type' => 'application/json',
-            ],
-        ]);
+        $this->httpClient = new HttpMethodsClient(
+            new PluginClient(
+                $httpClient ?: HttpClientDiscovery::find(),
+                [
+                    new BaseUriPlugin(
+                        UriFactoryDiscovery::find()->createUri($this->endpoint)
+                    ),
+                    new HeaderDefaultsPlugin([
+                        'Accept' => 'application/json',
+                        'Content-Type' => 'application/json',
+                    ]),
+                    new ErrorPlugin(),
+                ]
+            ),
+            MessageFactoryDiscovery::find()
+        );
     }
 
     /**
@@ -296,12 +316,10 @@ subjectAltName = '.$san.'
         $signed64 = Base64Url::encode($this->privateKey->sign($protected64.'.'.$payload64));
 
         return $this->request('POST', $uri, [
-            'json' => [
-                'header' => $header,
-                'protected' => $protected64,
-                'payload' => $payload64,
-                'signature' => $signed64,
-            ],
+            'header' => $header,
+            'protected' => $protected64,
+            'payload' => $payload64,
+            'signature' => $signed64,
         ]);
     }
 
@@ -310,21 +328,25 @@ subjectAltName = '.$san.'
      *
      * @param string $method
      * @param string $uri
-     * @param array  $options
+     * @param array  $jsonData
      *
      * @return ResponseInterface
      */
-    private function request($method, $uri, array $options = [])
+    private function request($method, $uri, array $jsonData = null)
     {
         try {
-            $response = $this->httpClient->request($method, $uri, $options);
+            $response = $this->httpClient->send($method, $uri, [], $jsonData ? \json_encode($jsonData) : null);
 
             if ($this->logger) {
                 $this->logger->info("[{$method}] {$uri}", (array) json_decode((string) $response->getBody(), true));
             }
-        } catch (ClientException $e) {
+        } catch (HttpException $e) {
             $response = $e->getResponse();
             $exceptionData = (array) json_decode((string) $response->getBody(), true);
+
+            if (empty($exceptionData)) {
+                throw new RuntimeException($response->getBody()->getContents(), $e->getCode(), $e);
+            }
 
             if ($this->logger) {
                 $this->logger->error("[{$method}] {$uri}", $exceptionData);

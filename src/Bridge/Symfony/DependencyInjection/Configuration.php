@@ -22,6 +22,12 @@ final class Configuration implements ConfigurationInterface
             ->children()
                 ->scalarNode('private_key_path')->defaultNull()->end()
                 ->scalarNode('endpoint')->defaultNull()->end()
+                ->arrayNode('http')
+                    ->addDefaultsIfNotSet()
+                    ->children()
+                        ->scalarNode('client')->defaultValue('httplug.client.default')->end()
+                    ->end()
+                ->end()
             ->end()
         ;
 

@@ -4,6 +4,7 @@ namespace Nexy\NexyCrypt\Bridge\Symfony\DependencyInjection;
 
 use Symfony\Bundle\MonologBundle\MonologBundle;
 use Symfony\Component\Config\FileLocator;
+use Symfony\Component\DependencyInjection\Alias;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\DependencyInjection\Loader\XmlFileLoader;
 use Symfony\Component\DependencyInjection\Reference;
@@ -26,6 +27,7 @@ final class NexyCryptExtension extends Extension
 
         $container->setParameter('nexy_crypt.private_key_path', $config['private_key_path']);
         $container->setParameter('nexy_crypt.endpoint', $config['endpoint']);
+        $container->setAlias('nexy_crypt.http.client', new Alias($config['http']['client'], false));
 
         $loader = new XmlFileLoader($container, new FileLocator(__DIR__.'/../Resources/config'));
         $loader->load('sdk.xml');

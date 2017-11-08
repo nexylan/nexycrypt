@@ -15,8 +15,10 @@ Inspired by [analogic/lescript](https://github.com/analogic/lescript) project.
 ## Installation
 
 ```bash
-composer require nexylan/nexycrypt
+composer require nexylan/nexycrypt php-http/guzzle6-adapter
 ```
+
+Why `php-http/guzzle6-adapter`? We are decoupled from any HTTP messaging client thanks to [HTTPlug](http://httplug.io/).
 
 ## Usage
 
