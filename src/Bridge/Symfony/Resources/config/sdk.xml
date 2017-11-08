@@ -8,6 +8,7 @@
         <service id="nexy_crypt.sdk" class="Nexy\NexyCrypt\NexyCrypt">
             <argument>%nexy_crypt.private_key_path%</argument>
             <argument>%nexy_crypt.endpoint%</argument>
+            <argument type="service" id="nexy_crypt.http.client" />
             <tag name="monolog.logger" channel="nexy_crypt" />
         </service>
     </services>
