@@ -8,6 +8,7 @@ use Http\Client\Common\Plugin\BaseUriPlugin;
 use Http\Client\Common\Plugin\ErrorPlugin;
 use Http\Client\Common\Plugin\HeaderDefaultsPlugin;
 use Http\Client\Common\PluginClient;
+use Http\Client\Exception;
 use Http\Client\Exception\HttpException;
 use Http\Client\HttpClient;
 use Http\Discovery\HttpClientDiscovery;
@@ -18,7 +19,7 @@ use Nexy\NexyCrypt\Authorization\Challenge\ChallengeFactory;
 use Nexy\NexyCrypt\Authorization\Challenge\ChallengeInterface;
 use Nexy\NexyCrypt\Authorization\Identifier;
 use Nexy\NexyCrypt\Exception\AcmeApiException;
-use Nexy\NexyCrypt\Exception\RuntimeException;
+use Nexy\NexyCrypt\Exception\AcmeException;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Log\LoggerAwareInterface;
 use Psr\Log\LoggerInterface;
@@ -340,12 +341,14 @@ subjectAltName = '.$san.'
             if ($this->logger) {
                 $this->logger->info("[{$method}] {$uri}", (array) json_decode((string) $response->getBody(), true));
             }
+
+            return $response;
         } catch (HttpException $e) {
             $response = $e->getResponse();
             $exceptionData = (array) json_decode((string) $response->getBody(), true);
 
             if (empty($exceptionData)) {
-                throw new RuntimeException($response->getBody()->getContents(), $e->getCode(), $e);
+                throw new AcmeException($response->getBody()->getContents(), $e->getCode(), $e);
             }
 
             if ($this->logger) {
@@ -353,13 +356,13 @@ subjectAltName = '.$san.'
             }
 
             throw new AcmeApiException($exceptionData['type'], $exceptionData['detail'], $exceptionData['status']);
+        } catch (Exception $e) {
+            throw new AcmeException($e->getMessage(), $e->getCode(), $e);
         } finally {
             if (isset($response)) {
                 $this->updateHeaders($response);
             }
         }
-
-        return $response;
     }
 
     private function updateHeaders(ResponseInterface $response)
