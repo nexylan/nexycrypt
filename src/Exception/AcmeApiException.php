@@ -7,7 +7,7 @@ use Exception;
 /**
  * @author Sullivan Senechal <soullivaneuh@gmail.com>
  */
-class AcmeApiException extends RuntimeException
+class AcmeApiException extends AcmeException
 {
     /**
      * @var string
