@@ -118,10 +118,6 @@ class NexyCrypt implements LoggerAwareInterface
      */
     public function register()
     {
-        if (null === $this->privateKey) {
-            $this->privateKey = new PrivateKey($this->privateKeyPath);
-        }
-
         try {
             $this->signedPostRequest(null === $this->regLocation ? 'acme/new-reg' : $this->regLocation, [
                 'resource' => null === $this->regLocation ? 'new-reg' : 'reg',
@@ -287,6 +283,10 @@ subjectAltName = '.$san.'
      */
     public function getPrivateKey()
     {
+        if (null === $this->privateKey) {
+            $this->privateKey = new PrivateKey($this->privateKeyPath);
+        }
+
         return $this->privateKey;
     }
 
@@ -302,8 +302,8 @@ subjectAltName = '.$san.'
             'alg' => 'RS256',
             'jwk' => [
                 'kty' => 'RSA',
-                'n' => Base64Url::encode($this->privateKey->getDetails()['rsa']['n']),
-                'e' => Base64Url::encode($this->privateKey->getDetails()['rsa']['e']),
+                'n' => Base64Url::encode($this->getPrivateKey()->getDetails()['rsa']['n']),
+                'e' => Base64Url::encode($this->getPrivateKey()->getDetails()['rsa']['e']),
             ],
         ];
 
@@ -313,7 +313,7 @@ subjectAltName = '.$san.'
         $payload64 = Base64Url::encode(json_encode($payload, JSON_UNESCAPED_SLASHES));
         $protected64 = Base64Url::encode(json_encode($protected));
 
-        $signed64 = Base64Url::encode($this->privateKey->sign($protected64.'.'.$payload64));
+        $signed64 = Base64Url::encode($this->getPrivateKey()->sign($protected64.'.'.$payload64));
 
         return $this->request('POST', $uri, [
             'header' => $header,
@@ -402,7 +402,7 @@ subjectAltName = '.$san.'
 
         if (true === $withChallenges) {
             foreach ($data['challenges'] as $challengeData) {
-                $challenge = ChallengeFactory::create($challengeData['type'], $challengeData, $this->privateKey);
+                $challenge = ChallengeFactory::create($challengeData['type'], $challengeData, $this->getPrivateKey());
                 $authorization->addChallenge($challenge);
             }
         }
