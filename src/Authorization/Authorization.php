@@ -26,15 +26,21 @@ final class Authorization
     private $expires;
 
     /**
+     * @var bool
+     */
+    private $wildcard = false;
+
+    /**
      * @var ChallengeInterface[]|ChallengeCollection
      */
     private $challenges;
 
     /**
-     * Authorization constructor.
+     * @param bool $wildcard
      */
-    public function __construct()
+    public function __construct($wildcard)
     {
+        $this->wildcard = $wildcard;
         $this->challenges = new ChallengeCollection();
     }
 
@@ -108,5 +114,13 @@ final class Authorization
     public function removeChallenge(ChallengeInterface $challenge)
     {
         $this->challenges->removeElement($challenge);
+    }
+
+    /**
+     * @return bool
+     */
+    public function isWildcard()
+    {
+        return $this->wildcard;
     }
 }

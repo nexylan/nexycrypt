@@ -163,7 +163,14 @@ final class Certificate
      */
     public function setFullchain($fullchain)
     {
-        $this->fullchain = $fullchain;
+        $this->fullchain = trim($fullchain);
+
+        $fullchainSplit = preg_split(
+            "/(-)\\n+(-)/",
+            $this->fullchain
+        );
+        $this->setCert(trim($fullchainSplit[0]).'-');
+        $this->setChain('-'.trim($fullchainSplit[1]));
     }
 
     /**

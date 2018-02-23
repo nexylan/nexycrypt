@@ -29,12 +29,12 @@ interface ChallengeInterface
     /**
      * @return string
      */
-    public function getUri();
+    public function getUrl();
 
     /**
      * @param string $uri
      */
-    public function setUri($uri);
+    public function setUrl($uri);
 
     /**
      * @return string
