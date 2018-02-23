@@ -43,7 +43,7 @@ final class ChallengeFactory
         }
 
         $challenge->setToken($data['token']);
-        $challenge->setUri($data['uri']);
+        $challenge->setUrl($data['url']);
         $challenge->setStatus(isset($data['status']) ? $data['status'] : null);
 
         $header = [

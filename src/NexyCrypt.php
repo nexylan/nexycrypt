@@ -18,6 +18,7 @@ use Nexy\NexyCrypt\Authorization\Authorization;
 use Nexy\NexyCrypt\Authorization\Challenge\ChallengeFactory;
 use Nexy\NexyCrypt\Authorization\Challenge\ChallengeInterface;
 use Nexy\NexyCrypt\Authorization\Identifier;
+use Nexy\NexyCrypt\Authorization\Order;
 use Nexy\NexyCrypt\Exception\AcmeApiException;
 use Nexy\NexyCrypt\Exception\AcmeException;
 use Psr\Http\Message\ResponseInterface;
@@ -37,7 +38,7 @@ class NexyCrypt implements LoggerAwareInterface
     /**
      * @var string
      */
-    private $endpoint = 'https://acme-v01.api.letsencrypt.org/';
+    private $endpoint = 'https://acme-v02.api.letsencrypt.org';
 
     /**
      * @var PrivateKey
@@ -66,7 +67,7 @@ class NexyCrypt implements LoggerAwareInterface
     /**
      * @var string
      */
-    private $regLocation;
+    private $kid;
 
     /**
      * @var LoggerInterface|null
@@ -85,7 +86,7 @@ class NexyCrypt implements LoggerAwareInterface
             : $privateKeyPath;
 
         if (null !== $endpoint) {
-            $this->endpoint = $endpoint;
+            $this->endpoint = rtrim($endpoint, '/');
         }
 
         $this->httpClient = new HttpMethodsClient(
@@ -119,48 +120,29 @@ class NexyCrypt implements LoggerAwareInterface
      */
     public function register()
     {
-        try {
-            $this->signedPostRequest(null === $this->regLocation ? 'acme/new-reg' : $this->regLocation, [
-                'resource' => null === $this->regLocation ? 'new-reg' : 'reg',
-            ]);
-        } catch (AcmeApiException $e) {
-            if (409 === $e->getCode()) {
-                $this->regLocation = $this->lastResponseHeaders['Location'][0];
-                // Registration location is now saved, try init again.
-                $this->register();
-            } else {
-                throw $e;
-            }
-        }
+        $response = $this->signedPostRequest('acme/new-acct', [
+            'termsOfServiceAgreed' => true,
+        ], true);
+        $this->kid = $response->getHeader('Location')[0];
     }
 
     /**
-     * See https://letsencrypt.org/repository/ -> Let’s Encrypt Subscriber Agreement.
-     */
-    public function agreeTerms()
-    {
-        $this->signedPostRequest($this->regLocation, [
-            'resource' => 'reg',
-            'agreement' => $this->links['terms-of-service'],
-        ]);
-    }
-
-    /**
-     * @param string $domain
+     * @param string[] $domains
      *
-     * @return Authorization
+     * @return Order
      */
-    public function authorize($domain)
+    public function order(array $domains)
     {
-        $response = $this->signedPostRequest('acme/new-authz', [
-            'resource' => 'new-authz',
-            'identifier' => [
-                'type' => 'dns',
-                'value' => $domain,
-            ],
+        $response = $this->signedPostRequest('acme/new-order', [
+            'identifiers' => array_map(function ($domain) {
+                return [
+                    'type' => 'dns',
+                    'value' => $domain,
+                ];
+            }, $domains),
         ]);
 
-        return $this->getAuthorization(json_decode((string) $response->getBody(), true));
+        return $this->getOrder(json_decode((string) $response->getBody(), true));
     }
 
     /**
@@ -170,7 +152,7 @@ class NexyCrypt implements LoggerAwareInterface
      */
     public function verifyChallenge(ChallengeInterface $challenge)
     {
-        $this->signedPostRequest($challenge->getUri(), [
+        $response = $this->signedPostRequest($challenge->getUrl(), [
             'resource' => 'challenge',
             'type' => $challenge->getType(),
             'keyAuthorization' => $challenge->getAuthorizationKey(),
@@ -189,6 +171,23 @@ class NexyCrypt implements LoggerAwareInterface
         } while ('valid' !== $authorization->getStatus());
 
         return true;
+    }
+
+    /**
+     * Call the finalize URL of the order, then download and fill the certificate.
+     *
+     * @param Order $order
+     * @param Certificate $certificate
+     */
+    public function finalize(Order $order, Certificate $certificate)
+    {
+        $finalizeData = \json_decode((string) $this->signedPostRequest($order->getFinalizeUrl(), [
+            'csr' => Base64Url::encode($certificate->getRawCsr()),
+        ])->getBody(), true);
+
+        $certificate->setFullchain(
+            (string) $this->request('GET', $finalizeData['certificate'])->getBody()
+        );
     }
 
     /**
@@ -243,43 +242,6 @@ subjectAltName = '.$san.'
     }
 
     /**
-     * Asks new-cert on Let's Encrypt to get and generate signed certificates.
-     *
-     * FullChain, cert and chain keys will be provider.
-     * NexyCrypt::generateCertificate method MUST be called before this one.
-     *
-     * @param Certificate $certificate
-     *
-     * @return Certificate
-     */
-    public function signCertificate(Certificate $certificate)
-    {
-        $this->signedPostRequest('acme/new-cert', [
-            'resource' => 'new-cert',
-            'csr' => Base64Url::encode($certificate->getRawCsr()),
-        ]);
-
-        $certLocation = $this->lastResponseHeaders['Location'][0];
-
-        do {
-            $response = $this->request('GET', $certLocation);
-        } while (200 !== $response->getStatusCode());
-
-        $certificates = [];
-        $certificates[] = $this->parsePemFromBody((string) $response->getBody());
-
-        // Get chain
-        $response = $this->request('GET', $this->links['up']);
-        $certificates[] = $this->parsePemFromBody((string) $response->getBody());
-
-        $certificate->setFullchain(implode("\n", $certificates));
-        $certificate->setCert(array_shift($certificates));
-        $certificate->setChain(implode("\n", $certificates));
-
-        return $certificate;
-    }
-
-    /**
      * @return PrivateKey
      */
     public function getPrivateKey()
@@ -294,33 +256,39 @@ subjectAltName = '.$san.'
     /**
      * @param string $uri
      * @param array  $payload
+     * @param bool   $useKeyHeader
      *
      * @return ResponseInterface
      */
-    private function signedPostRequest($uri, array $payload)
+    private function signedPostRequest($uri, array $payload, $useKeyHeader = false)
     {
         $header = [
             'alg' => 'RS256',
-            'jwk' => [
+            'nonce' => $this->getLastNonce(),
+            'url' => "{$this->endpoint}{$this->normalizeUri($uri)}",
+        ];
+
+        if ($useKeyHeader) {
+            $header['jwk'] = [
                 'kty' => 'RSA',
                 'n' => Base64Url::encode($this->getPrivateKey()->getDetails()['rsa']['n']),
                 'e' => Base64Url::encode($this->getPrivateKey()->getDetails()['rsa']['e']),
-            ],
-        ];
-
-        $protected = $header;
-        $protected['nonce'] = $this->getLastNonce();
+            ];
+        } else {
+            $header['kid'] = $this->kid;
+        }
 
         $payload64 = Base64Url::encode(json_encode($payload, JSON_UNESCAPED_SLASHES));
-        $protected64 = Base64Url::encode(json_encode($protected));
+        $protected64 = Base64Url::encode(json_encode($header));
 
         $signed64 = Base64Url::encode($this->getPrivateKey()->sign($protected64.'.'.$payload64));
 
         return $this->request('POST', $uri, [
-            'header' => $header,
             'protected' => $protected64,
             'payload' => $payload64,
             'signature' => $signed64,
+        ], [
+            'Content-Type' => 'application/jose+json'
         ]);
     }
 
@@ -330,13 +298,20 @@ subjectAltName = '.$san.'
      * @param string $method
      * @param string $uri
      * @param array  $jsonData
+     * @param string[] $headers
      *
      * @return ResponseInterface
      */
-    private function request($method, $uri, array $jsonData = null)
+    private function request($method, $uri, array $jsonData = null, array $headers = [])
     {
+        $uri = $this->normalizeUri($uri);
         try {
-            $response = $this->httpClient->send($method, $uri, [], $jsonData ? \json_encode($jsonData) : null);
+            $response = $this->httpClient->send(
+                $method,
+                $uri,
+                $headers,
+                $jsonData ? \json_encode($jsonData) : null
+            );
 
             if ($this->logger) {
                 $this->logger->info("[{$method}] {$uri}", (array) json_decode((string) $response->getBody(), true));
@@ -383,10 +358,40 @@ subjectAltName = '.$san.'
     private function getLastNonce()
     {
         if (!isset($this->lastResponseHeaders['Replay-Nonce'][0])) {
-            $this->request('GET', 'directory');
+            $this->request('HEAD', 'acme/new-nonce');
         }
 
         return $this->lastResponseHeaders['Replay-Nonce'][0];
+    }
+
+    private function getOrder(array $data, $withAuthorizations = true)
+    {
+        $order = new Order(
+            $data['status'],
+            new \DateTime(
+                substr($data['expires'], 0, -4),
+                new \DateTimeZone('UTC')
+            ),
+            array_map(function ($identifierData) {
+                return new Identifier($identifierData['type'], $identifierData['value']);
+            }, $data['identifiers']),
+            $data['finalize']
+        );
+
+        if ($withAuthorizations) {
+            foreach ($data['authorizations'] as $authorizationUrl) {
+                $order->addAuthorization(
+                    $this->getAuthorization(
+                        json_decode(
+                            (string) $this->request('GET', $authorizationUrl)->getBody(),
+                            true
+                        )
+                    )
+                );
+            }
+        }
+
+        return $order;
     }
 
     /**
@@ -397,7 +402,9 @@ subjectAltName = '.$san.'
      */
     private function getAuthorization(array $data, $withChallenges = true)
     {
-        $authorization = new Authorization();
+        $authorization = new Authorization(
+            array_key_exists('wildcard', $data) ? $data['wildcard'] : false
+        );
 
         $authorization->setIdentifier(new Identifier($data['identifier']['type'], $data['identifier']['value']));
         $authorization->setStatus($data['status']);
@@ -416,14 +423,14 @@ subjectAltName = '.$san.'
     }
 
     /**
-     * @param string $body The API response body
+     * Remove the endpoint if present and normalize slashes.
+     *
+     * @param string $uri
      *
      * @return string
      */
-    private function parsePemFromBody($body)
+    private function normalizeUri($uri)
     {
-        $pem = chunk_split(base64_encode($body), 64, "\n");
-
-        return "-----BEGIN CERTIFICATE-----\n".$pem."-----END CERTIFICATE-----\n";
+        return '/'.ltrim(str_replace($this->endpoint, '', $uri), '/');
     }
 }

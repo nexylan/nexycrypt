@@ -16,7 +16,8 @@
         "php-http/client-common": "^1.6",
         "php-http/client-implementation": "^1.0",
         "php-http/discovery": "^1.3",
-        "spomky-labs/base64url": "^1.0"
+        "spomky-labs/base64url": "^1.0",
+        "webmozart/assert": "^1.3"
     },
     "require-dev": {
         "analogic/lescript": "^0.1.3",

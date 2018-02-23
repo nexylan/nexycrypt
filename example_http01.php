@@ -16,46 +16,51 @@ use Nexy\NexyCrypt\NexyCrypt;
 
 require_once __DIR__.'/vendor/autoload.php';
 
-if ($argc < 3) {
-    echo 'You have to pass domain and step arguments.'.PHP_EOL;
-    exit(1);
-}
-
 $domains = [];
-for ($a = 1; $a < $argc - 1; ++$a) {
+for ($a = 1; $a < $argc; ++$a) {
     $domains[] = $argv[$a];
 }
-$step = intval($argv[$a]);
 
 // First commented line is for production.
 //$client = new NexyCrypt();
-$client = new NexyCrypt(null, 'https://acme-staging.api.letsencrypt.org/');
+$client = new NexyCrypt(null, 'https://acme-staging-v02.api.letsencrypt.org/');
 
 try {
     $client->register();
-    $client->agreeTerms();
 
-    if (1 === $step) {
+    if (!empty($domains)) {
         @mkdir('public');
+        $order = $client->order($domains);
 
-        foreach ($domains as $domain) {
-            $authorization = $client->authorize($domain);
-
+        foreach ($order->getAuthorizations() as $authorization) {
             $challenge = $authorization->getChallenges()->getHttp01();
 
-            @mkdir('public/'.$domain);
-            file_put_contents('public/'.$domain.'/'.$challenge->getFileName(), $challenge->getFileContent());
-            file_put_contents('public/'.$domain.'/challenge', serialize($challenge));
+            @mkdir('public/'.$authorization->getIdentifier()->getValue());
+            file_put_contents('public/'.$authorization->getIdentifier()->getValue().'/'.$challenge->getFileName(), $challenge->getFileContent());
+            file_put_contents('public/'.$authorization->getIdentifier()->getValue().'/challenge', serialize($challenge));
         }
-    }
 
-    if (2 === $step) {
-        foreach ($domains as $domain) {
-            /** @var Http01Challenge $challenge */
-            $challenge = unserialize(file_get_contents('public/'.$domain.'/challenge'));
+        file_put_contents('public/order', serialize($order));
+        file_put_contents('public/domains', serialize($domains));
+    } else {
+        /** @var \Nexy\NexyCrypt\Authorization\Order $order */
+        $order = unserialize(file_get_contents('public/order'));
+        $domains = unserialize(file_get_contents('public/domains'));
 
-            $client->verifyChallenge($challenge);
+        $allGood = true;
+        foreach ($order->getAuthorizations() as $authorization) {
+            $challenge = $authorization->getChallenges()->getHttp01();
+
+            if (false === $client->verifyChallenge($challenge)) {
+                echo sprintf('Invalid challenge for %s', $authorization->getIdentifier()->getValue()).PHP_EOL;
+                $allGood = false;
+            }
         }
+
+        if (!$allGood) {
+            return;
+        }
+
 
         @mkdir('cert');
 
@@ -64,7 +69,7 @@ try {
             file_put_contents('cert/'.$filename, $content);
         }
 
-        $certificate = $client->signCertificate($certificate);
+        $client->finalize($order, $certificate);
         foreach ($certificate->getFilesArray() as $filename => $content) {
             file_put_contents('cert/'.$filename, $content);
         }

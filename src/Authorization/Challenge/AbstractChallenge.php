@@ -15,7 +15,7 @@ abstract class AbstractChallenge implements ChallengeInterface
     /**
      * @var string
      */
-    protected $uri;
+    protected $url;
 
     /**
      * @var string
@@ -46,17 +46,17 @@ abstract class AbstractChallenge implements ChallengeInterface
     /**
      * @return string
      */
-    public function getUri()
+    public function getUrl()
     {
-        return $this->uri;
+        return $this->url;
     }
 
     /**
-     * @param string $uri
+     * @param string $url
      */
-    public function setUri($uri)
+    public function setUrl($url)
     {
-        $this->uri = $uri;
+        $this->url = $url;
     }
 
     /**
