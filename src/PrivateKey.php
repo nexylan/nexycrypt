@@ -33,6 +33,7 @@ final class PrivateKey
             $this->key = openssl_pkey_get_private('file://'.$this->path);
         } else {
             $this->key = openssl_pkey_new();
+            @mkdir(dirname($this->path), 0700, true);
             file_put_contents($this->path, $this->getOutput());
         }
         $this->details = openssl_pkey_get_details($this->key);
