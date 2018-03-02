@@ -5,7 +5,7 @@
            xsi:schemaLocation="http://symfony.com/schema/dic/services http://symfony.com/schema/dic/services/services-1.0.xsd">
 
     <services>
-        <service id="nexy_crypt.sdk" class="Nexy\NexyCrypt\NexyCrypt">
+        <service id="Nexy\NexyCrypt\NexyCryptFactory">
             <argument>%nexy_crypt.private_key_path%</argument>
             <argument>%nexy_crypt.endpoint%</argument>
             <argument type="service" id="nexy_crypt.http.client" />
