@@ -406,7 +406,9 @@ subjectAltName = '.$san.'
         if (true === $withChallenges) {
             foreach ($data['challenges'] as $challengeData) {
                 $challenge = ChallengeFactory::create($challengeData['type'], $challengeData, $this->getPrivateKey());
-                $authorization->addChallenge($challenge);
+                if (null !== $challenge) {
+                    $authorization->addChallenge($challenge);
+                }
             }
         }
 
