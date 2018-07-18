@@ -323,7 +323,7 @@ subjectAltName = '.$san.'
             $exceptionData = (array) json_decode((string) $response->getBody(), true);
 
             if (empty($exceptionData)) {
-                throw new AcmeException($response->getBody()->getContents(), $e->getCode(), $e);
+                throw new AcmeException((string) $response->getBody(), $e->getCode(), $e);
             }
 
             if ($this->logger) {
