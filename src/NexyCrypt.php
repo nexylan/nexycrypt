@@ -147,12 +147,10 @@ class NexyCrypt implements LoggerAwareInterface
 
     /**
      * @param ChallengeInterface $challenge
-     *
-     * @return bool
      */
     public function verifyChallenge(ChallengeInterface $challenge)
     {
-        $response = $this->signedPostRequest($challenge->getUrl(), [
+        $this->signedPostRequest($challenge->getUrl(), [
             'resource' => 'challenge',
             'type' => $challenge->getType(),
             'keyAuthorization' => $challenge->getAuthorizationKey(),
@@ -163,14 +161,19 @@ class NexyCrypt implements LoggerAwareInterface
         do {
             usleep(100);
             $response = $this->request('GET', $this->links['up']);
-            $authorization = $this->getAuthorization(json_decode((string) $response->getBody(), true), false);
+            $authorization = $this->getAuthorization(json_decode((string) $response->getBody(), true), true);
 
-            if ('invalid' === $authorization->getStatus()) {
-                return false;
+            if ('invalid' !== $authorization->getStatus()) {
+                continue;
             }
-        } while ('valid' !== $authorization->getStatus());
 
-        return true;
+            foreach ($authorization->getChallenges() as $authChallenge) {
+                if ($authChallenge->getError()) {
+                    throw new AcmeException((string) $authChallenge->getError(), $authChallenge->getError()->getStatus());
+                }
+            }
+            throw new AcmeException('Invalid challenge.');
+        } while ('valid' !== $authorization->getStatus());
     }
 
     /**

@@ -50,11 +50,7 @@ try {
         $allGood = true;
         foreach ($order->getAuthorizations() as $authorization) {
             $challenge = $authorization->getChallenges()->getHttp01();
-
-            if (false === $client->verifyChallenge($challenge)) {
-                echo sprintf('Invalid challenge for %s', $authorization->getIdentifier()->getValue()).PHP_EOL;
-                $allGood = false;
-            }
+            $client->verifyChallenge($challenge);
         }
 
         if (!$allGood) {

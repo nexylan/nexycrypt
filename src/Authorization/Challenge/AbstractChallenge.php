@@ -2,6 +2,8 @@
 
 namespace Nexy\NexyCrypt\Authorization\Challenge;
 
+use Nexy\NexyCrypt\Authorization\Error;
+
 /**
  * @author Sullivan Senechal <soullivaneuh@gmail.com>
  */
@@ -26,6 +28,11 @@ abstract class AbstractChallenge implements ChallengeInterface
      * @var string
      */
     protected $authorizationKey;
+
+    /**
+     * @var Error|null
+     */
+    protected $error;
 
     /**
      * @return string
@@ -89,5 +96,21 @@ abstract class AbstractChallenge implements ChallengeInterface
     public function setAuthorizationKey($authorizationKey)
     {
         $this->authorizationKey = $authorizationKey;
+    }
+
+    /**
+     * @return Error|null
+     */
+    public function getError()
+    {
+        return $this->error;
+    }
+
+    /**
+     * @param Error|null $error
+     */
+    public function setError($error)
+    {
+        $this->error = $error;
     }
 }

@@ -1,6 +1,7 @@
 <?php
 
 namespace Nexy\NexyCrypt\Authorization\Challenge;
+use Nexy\NexyCrypt\Authorization\Error;
 
 /**
  * @author Sullivan Senechal <soullivaneuh@gmail.com>
@@ -55,4 +56,14 @@ interface ChallengeInterface
      * @param string $authorizationKey
      */
     public function setAuthorizationKey($authorizationKey);
+
+    /**
+     * @return Error|null
+     */
+    public function getError();
+
+    /**
+     * @param Error|null
+     */
+    public function setError($error);
 }

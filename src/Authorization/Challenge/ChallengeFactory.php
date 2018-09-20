@@ -3,6 +3,7 @@
 namespace Nexy\NexyCrypt\Authorization\Challenge;
 
 use Base64Url\Base64Url;
+use Nexy\NexyCrypt\Authorization\Error;
 use Nexy\NexyCrypt\PrivateKey;
 
 /**
@@ -45,6 +46,11 @@ final class ChallengeFactory
         $challenge->setToken($data['token']);
         $challenge->setUrl($data['url']);
         $challenge->setStatus(isset($data['status']) ? $data['status'] : null);
+        $challenge->setError(
+            isset($data['error'])
+                ? new Error($data['error']['type'], $data['error']['detail'], $data['error']['status'])
+                : null
+        );
 
         $header = [
             // need to be in precise order!
