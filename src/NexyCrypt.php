@@ -160,7 +160,7 @@ class NexyCrypt implements LoggerAwareInterface
         $authorization = null;
         do {
             usleep(100);
-            $response = $this->request('GET', $this->links['up']);
+            $response = $this->signedPostRequest($this->links['up']);
             $authorization = $this->getAuthorization(json_decode((string) $response->getBody(), true), true);
 
             if ('invalid' !== $authorization->getStatus()) {
@@ -189,7 +189,7 @@ class NexyCrypt implements LoggerAwareInterface
         ])->getBody(), true);
 
         $certificate->setFullchain(
-            (string) $this->request('GET', $finalizeData['certificate'])->getBody()
+            (string) $this->signedPostRequest($finalizeData['certificate'])->getBody()
         );
     }
 
@@ -263,7 +263,7 @@ subjectAltName = '.$san.'
      *
      * @return ResponseInterface
      */
-    private function signedPostRequest($uri, array $payload, $useKeyHeader = false)
+    private function signedPostRequest($uri, array $payload = null, $useKeyHeader = false)
     {
         $header = [
             'alg' => 'RS256',
@@ -281,7 +281,7 @@ subjectAltName = '.$san.'
             $header['kid'] = $this->kid;
         }
 
-        $payload64 = Base64Url::encode(json_encode($payload, JSON_UNESCAPED_SLASHES));
+        $payload64 = null !== $payload ? Base64Url::encode(json_encode($payload, JSON_UNESCAPED_SLASHES)) : '';
         $protected64 = Base64Url::encode(json_encode($header));
 
         $signed64 = Base64Url::encode($this->getPrivateKey()->sign($protected64.'.'.$payload64));
@@ -386,7 +386,7 @@ subjectAltName = '.$san.'
                 $order->addAuthorization(
                     $this->getAuthorization(
                         json_decode(
-                            (string) $this->request('GET', $authorizationUrl)->getBody(),
+                            (string) $this->signedPostRequest($authorizationUrl)->getBody(),
                             true
                         )
                     )
