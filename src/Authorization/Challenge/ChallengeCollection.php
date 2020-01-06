@@ -10,7 +10,7 @@ use Doctrine\Common\Collections\ArrayCollection;
 class ChallengeCollection extends ArrayCollection
 {
     /**
-     * @return Http01Challenge|null
+     * @return Http01Challenge|null|false
      */
     public function getHttp01()
     {
@@ -20,7 +20,7 @@ class ChallengeCollection extends ArrayCollection
     }
 
     /**
-     * @return Dns01Challenge|null
+     * @return Dns01Challenge|null|false
      */
     public function getDns01()
     {
@@ -30,7 +30,7 @@ class ChallengeCollection extends ArrayCollection
     }
 
     /**
-     * @return TlsSni01Challenge|null
+     * @return TlsSni01Challenge|null|false
      */
     public function getTlsSni01()
     {
@@ -42,7 +42,7 @@ class ChallengeCollection extends ArrayCollection
     /**
      * @param string $type
      *
-     * @return ChallengeInterface|null
+     * @return ChallengeInterface|null|false
      */
     public function getOfType($type)
     {
