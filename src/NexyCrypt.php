@@ -24,6 +24,7 @@ use Nexy\NexyCrypt\Exception\AcmeException;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Log\LoggerAwareInterface;
 use Psr\Log\LoggerInterface;
+use Psr\Log\NullLogger;
 
 /**
  * @author Sullivan Senechal <soullivaneuh@gmail.com>
@@ -70,9 +71,9 @@ class NexyCrypt implements LoggerAwareInterface
     private $kid;
 
     /**
-     * @var LoggerInterface|null
+     * @var LoggerInterface
      */
-    private $logger = null;
+    private $logger;
 
     /**
      * @param string $privateKeyPath
@@ -105,6 +106,8 @@ class NexyCrypt implements LoggerAwareInterface
             ),
             MessageFactoryDiscovery::find()
         );
+
+        $this->logger = new NullLogger();
     }
 
     /**
@@ -316,9 +319,7 @@ subjectAltName = '.$san.'
                 $jsonData ? \json_encode($jsonData) : null
             );
 
-            if ($this->logger) {
-                $this->logger->info("[{$method}] {$uri}", (array) json_decode((string) $response->getBody(), true));
-            }
+            $this->logger->info("[{$method}] {$uri}", (array) json_decode((string) $response->getBody(), true));
 
             return $response;
         } catch (HttpException $e) {
@@ -329,9 +330,7 @@ subjectAltName = '.$san.'
                 throw new AcmeException((string) $response->getBody(), $e->getCode(), $e);
             }
 
-            if ($this->logger) {
-                $this->logger->error("[{$method}] {$uri}", $exceptionData);
-            }
+            $this->logger->error("[{$method}] {$uri}", $exceptionData);
 
             throw new AcmeApiException($exceptionData['type'], $exceptionData['detail'], $exceptionData['status']);
         } catch (Exception $e) {
