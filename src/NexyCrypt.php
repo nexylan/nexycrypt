@@ -311,6 +311,7 @@ subjectAltName = '.$san.'
     private function request($method, $uri, array $jsonData = null, array $headers = [])
     {
         $uri = $this->normalizeUri($uri);
+        $loggerKey = "[{$method}] {$uri}";
         try {
             $response = $this->httpClient->send(
                 $method,
@@ -319,21 +320,29 @@ subjectAltName = '.$san.'
                 $jsonData ? \json_encode($jsonData) : null
             );
 
-            $this->logger->info("[{$method}] {$uri}", (array) json_decode((string) $response->getBody(), true));
+            $this->logger->info($loggerKey, (array) json_decode((string) $response->getBody(), true));
 
             return $response;
         } catch (HttpException $e) {
             $response = $e->getResponse();
-            $exceptionData = (array) json_decode((string) $response->getBody(), true);
+            $responseBody = (string) $response->getBody();
+            $exceptionData = (array) json_decode($responseBody, true);
 
             if (empty($exceptionData)) {
-                throw new AcmeException((string) $response->getBody(), $e->getCode(), $e);
+                $this->logger->error($loggerKey, [
+                    'error' => $responseBody,
+                    'status' => $response->getStatusCode(),
+                ]);
+
+                throw new AcmeException($responseBody, $e->getCode(), $e);
             }
 
-            $this->logger->error("[{$method}] {$uri}", $exceptionData);
+            $this->logger->error($loggerKey, $exceptionData);
 
             throw new AcmeApiException($exceptionData['type'], $exceptionData['detail'], $exceptionData['status']);
         } catch (Exception $e) {
+            $this->logger->error($loggerKey, ['error' => $e->getMessage()]);
+
             throw new AcmeException($e->getMessage(), $e->getCode(), $e);
         } finally {
             if (isset($response)) {
