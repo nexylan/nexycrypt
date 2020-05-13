@@ -1,5 +1,16 @@
 <?php
 
+declare(strict_types=1);
+
+/*
+ * This file is part of the Nexylan packages.
+ *
+ * (c) Nexylan SAS <contact@nexylan.com>
+ *
+ * For the full copyright and license information, please view the LICENSE
+ * file that was distributed with this source code.
+ */
+
 namespace Nexy\NexyCrypt\Authorization;
 
 use Nexy\NexyCrypt\Authorization\Challenge\ChallengeCollection;
@@ -35,27 +46,21 @@ final class Authorization
      */
     private $challenges;
 
-    /**
-     * @param bool $wildcard
-     */
-    public function __construct($wildcard)
+    public function __construct(Identifier $identifier, string $status, \DateTime $expires, bool $wildcard)
     {
+        $this->identifier = $identifier;
+        $this->status = $status;
+        $this->expires = $expires;
         $this->wildcard = $wildcard;
         $this->challenges = new ChallengeCollection();
     }
 
-    /**
-     * @return Identifier
-     */
-    public function getIdentifier()
+    public function getIdentifier(): Identifier
     {
         return $this->identifier;
     }
 
-    /**
-     * @return string
-     */
-    public function getIdentifierDisplayName()
+    public function getIdentifierDisplayName(): string
     {
         if ($this->isWildcard()) {
             return '*.'.$this->getIdentifier()->getValue();
@@ -64,74 +69,35 @@ final class Authorization
         return $this->getIdentifier()->getValue();
     }
 
-    /**
-     * @param Identifier $identifier
-     */
-    public function setIdentifier($identifier)
-    {
-        $this->identifier = $identifier;
-    }
-
-    /**
-     * @return string
-     */
-    public function getStatus()
+    public function getStatus(): string
     {
         return $this->status;
     }
 
-    /**
-     * @param string $status
-     */
-    public function setStatus($status)
-    {
-        $this->status = $status;
-    }
-
-    /**
-     * @return \DateTime
-     */
-    public function getExpires()
+    public function getExpires(): \DateTime
     {
         return $this->expires;
     }
 
     /**
-     * @param \DateTime $expires
-     */
-    public function setExpires($expires)
-    {
-        $this->expires = $expires;
-    }
-
-    /**
      * @return ChallengeInterface[]|ChallengeCollection
      */
-    public function getChallenges()
+    public function getChallenges(): ChallengeCollection
     {
         return $this->challenges;
     }
 
-    /**
-     * @param ChallengeInterface $challenge
-     */
-    public function addChallenge(ChallengeInterface $challenge)
+    public function addChallenge(ChallengeInterface $challenge): void
     {
         $this->challenges->add($challenge);
     }
 
-    /**
-     * @param ChallengeInterface $challenge
-     */
-    public function removeChallenge(ChallengeInterface $challenge)
+    public function removeChallenge(ChallengeInterface $challenge): void
     {
         $this->challenges->removeElement($challenge);
     }
 
-    /**
-     * @return bool
-     */
-    public function isWildcard()
+    public function isWildcard(): bool
     {
         return $this->wildcard;
     }

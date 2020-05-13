@@ -1,5 +1,16 @@
 <?php
 
+declare(strict_types=1);
+
+/*
+ * This file is part of the Nexylan packages.
+ *
+ * (c) Nexylan SAS <contact@nexylan.com>
+ *
+ * For the full copyright and license information, please view the LICENSE
+ * file that was distributed with this source code.
+ */
+
 namespace Nexy\NexyCrypt\Authorization\Challenge;
 
 /**
@@ -7,42 +18,27 @@ namespace Nexy\NexyCrypt\Authorization\Challenge;
  */
 final class Http01Challenge extends AbstractChallenge
 {
-    /**
-     * @return string
-     */
-    public function getType()
+    public function getType(): string
     {
         return ChallengeInterface::HTTP_01;
     }
 
-    /**
-     * @return string
-     */
-    public function getDirectory()
+    public function getDirectory(): string
     {
         return '.well-known/acme-challenge';
     }
 
-    /**
-     * @return string
-     */
-    public function getFileName()
+    public function getFileName(): string
     {
         return $this->getToken();
     }
 
-    /**
-     * @return string
-     */
-    public function getFileContent()
+    public function getFileContent(): string
     {
         return $this->getAuthorizationKey();
     }
 
-    /**
-     * @return string
-     */
-    public function getPath()
+    public function getPath(): string
     {
         return sprintf('%s/%s', $this->getDirectory(), $this->getFileName());
     }

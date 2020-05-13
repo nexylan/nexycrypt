@@ -1,5 +1,16 @@
 <?php
 
+declare(strict_types=1);
+
+/*
+ * This file is part of the Nexylan packages.
+ *
+ * (c) Nexylan SAS <contact@nexylan.com>
+ *
+ * For the full copyright and license information, please view the LICENSE
+ * file that was distributed with this source code.
+ */
+
 namespace Nexy\NexyCrypt\Authorization\Challenge;
 
 use Nexy\NexyCrypt\Authorization\Error;
@@ -34,83 +45,37 @@ abstract class AbstractChallenge implements ChallengeInterface
      */
     protected $error;
 
-    /**
-     * @return string
-     */
-    public function getStatus()
+    final public function __construct(string $status, string $url, string $token, string $authorizationKey, ?Error $error)
+    {
+        $this->status = $status;
+        $this->url = $url;
+        $this->token = $token;
+        $this->authorizationKey = $authorizationKey;
+        $this->error = $error;
+    }
+
+    public function getStatus(): string
     {
         return $this->status;
     }
 
-    /**
-     * @param string $status
-     */
-    public function setStatus($status)
-    {
-        $this->status = $status;
-    }
-
-    /**
-     * @return string
-     */
-    public function getUrl()
+    public function getUrl(): string
     {
         return $this->url;
     }
 
-    /**
-     * @param string $url
-     */
-    public function setUrl($url)
-    {
-        $this->url = $url;
-    }
-
-    /**
-     * @return string
-     */
-    public function getToken()
+    public function getToken(): string
     {
         return $this->token;
     }
 
-    /**
-     * @param string $token
-     */
-    public function setToken($token)
-    {
-        $this->token = $token;
-    }
-
-    /**
-     * @return string
-     */
-    public function getAuthorizationKey()
+    public function getAuthorizationKey(): string
     {
         return $this->authorizationKey;
     }
 
-    /**
-     * @param string $authorizationKey
-     */
-    public function setAuthorizationKey($authorizationKey)
-    {
-        $this->authorizationKey = $authorizationKey;
-    }
-
-    /**
-     * @return Error|null
-     */
-    public function getError()
+    public function getError(): ?Error
     {
         return $this->error;
-    }
-
-    /**
-     * @param Error|null $error
-     */
-    public function setError($error)
-    {
-        $this->error = $error;
     }
 }

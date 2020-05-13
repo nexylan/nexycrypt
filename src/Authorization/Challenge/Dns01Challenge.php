@@ -1,5 +1,16 @@
 <?php
 
+declare(strict_types=1);
+
+/*
+ * This file is part of the Nexylan packages.
+ *
+ * (c) Nexylan SAS <contact@nexylan.com>
+ *
+ * For the full copyright and license information, please view the LICENSE
+ * file that was distributed with this source code.
+ */
+
 namespace Nexy\NexyCrypt\Authorization\Challenge;
 
 use Base64Url\Base64Url;
@@ -9,34 +20,22 @@ use Base64Url\Base64Url;
  */
 final class Dns01Challenge extends AbstractChallenge
 {
-    /**
-     * @return string
-     */
-    public function getType()
+    public function getType(): string
     {
         return ChallengeInterface::DNS_01;
     }
 
-    /**
-     * @return string
-     */
-    public function getRecordName()
+    public function getRecordName(): string
     {
         return '_acme-challenge';
     }
 
-    /**
-     * @return string
-     */
-    public function getRecordType()
+    public function getRecordType(): string
     {
         return 'TXT';
     }
 
-    /**
-     * @return string
-     */
-    public function getRecordContent()
+    public function getRecordContent(): string
     {
         return Base64Url::encode(hash('sha256', $this->authorizationKey, true));
     }

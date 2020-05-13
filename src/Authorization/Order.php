@@ -1,7 +1,17 @@
 <?php
 
-namespace Nexy\NexyCrypt\Authorization;
+declare(strict_types=1);
 
+/*
+ * This file is part of the Nexylan packages.
+ *
+ * (c) Nexylan SAS <contact@nexylan.com>
+ *
+ * For the full copyright and license information, please view the LICENSE
+ * file that was distributed with this source code.
+ */
+
+namespace Nexy\NexyCrypt\Authorization;
 
 use Webmozart\Assert\Assert;
 
@@ -33,11 +43,9 @@ final class Order
     private $finalizeUrl;
 
     /**
-     * @param string $status
-     * @param \DateTime $expires
      * @param Identifier[] $identifiers
      */
-    public function __construct($status, \DateTime $expires, array $identifiers, $finalizeUrl)
+    public function __construct(string $status, \DateTime $expires, array $identifiers, string $finalizeUrl)
     {
         Assert::allIsInstanceOf($identifiers, Identifier::class);
 
@@ -47,18 +55,12 @@ final class Order
         $this->finalizeUrl = $finalizeUrl;
     }
 
-    /**
-     * @return string
-     */
-    public function getStatus()
+    public function getStatus(): string
     {
         return $this->status;
     }
 
-    /**
-     * @return \DateTime
-     */
-    public function getExpires()
+    public function getExpires(): \DateTime
     {
         return $this->expires;
     }
@@ -66,7 +68,7 @@ final class Order
     /**
      * @return Identifier[]
      */
-    public function getIdentifiers()
+    public function getIdentifiers(): array
     {
         return $this->identifiers;
     }
@@ -74,20 +76,17 @@ final class Order
     /**
      * @return Authorization[]
      */
-    public function getAuthorizations()
+    public function getAuthorizations(): array
     {
         return $this->authorizations;
     }
 
-    public function addAuthorization(Authorization $authorization)
+    public function addAuthorization(Authorization $authorization): void
     {
         $this->authorizations[] = $authorization;
     }
 
-    /**
-     * @return string
-     */
-    public function getFinalizeUrl()
+    public function getFinalizeUrl(): string
     {
         return $this->finalizeUrl;
     }
