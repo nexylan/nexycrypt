@@ -1,5 +1,16 @@
 <?php
 
+declare(strict_types=1);
+
+/*
+ * This file is part of the Nexylan packages.
+ *
+ * (c) Nexylan SAS <contact@nexylan.com>
+ *
+ * For the full copyright and license information, please view the LICENSE
+ * file that was distributed with this source code.
+ */
+
 namespace Nexy\NexyCrypt;
 
 /**
@@ -14,7 +25,7 @@ final class Certificate
      *
      * @var string
      */
-    private $privkey;
+    private $privkey = '';
 
     /**
      * Public generated key.
@@ -23,7 +34,7 @@ final class Certificate
      *
      * @var string
      */
-    private $pubkey;
+    private $pubkey = '';
 
     /**
      * Generated CSR.
@@ -32,14 +43,14 @@ final class Certificate
      *
      * @var string
      */
-    private $csr;
+    private $csr = '';
 
     /**
      * fullchain.pem.
      *
      * @var string
      */
-    private $fullchain;
+    private $fullchain = '';
 
     /**
      * Provided certificate's cert.
@@ -48,7 +59,7 @@ final class Certificate
      *
      * @var string
      */
-    private $cert;
+    private $cert = '';
 
     /**
      * Provided certificate's chain.
@@ -57,15 +68,15 @@ final class Certificate
      *
      * @var string
      */
-    private $chain;
+    private $chain = '';
 
     /**
-     * @var \DateTime
+     * @var \DateTime|null
      */
     private $validFrom;
 
     /**
-     * @var \DateTime
+     * @var \DateTime|null
      */
     private $validTo;
 
@@ -74,7 +85,7 @@ final class Certificate
      *
      * @return string[]
      */
-    public function getFilesArray()
+    public function getFilesArray(): array
     {
         return [
             'privkey.pem' => $this->privkey,
@@ -86,42 +97,27 @@ final class Certificate
         ];
     }
 
-    /**
-     * @return string
-     */
-    public function getPrivkey()
+    public function getPrivkey(): string
     {
         return $this->privkey;
     }
 
-    /**
-     * @param string $privkey
-     */
-    public function setPrivkey($privkey)
+    public function setPrivkey(string $privkey): void
     {
         $this->privkey = $privkey;
     }
 
-    /**
-     * @return string
-     */
-    public function getPubkey()
+    public function getPubkey(): string
     {
         return $this->pubkey;
     }
 
-    /**
-     * @param string $pubkey
-     */
-    public function setPubkey($pubkey)
+    public function setPubkey(string $pubkey): void
     {
         $this->pubkey = $pubkey;
     }
 
-    /**
-     * @return string
-     */
-    public function getCsr()
+    public function getCsr(): string
     {
         return $this->csr;
     }
@@ -132,59 +128,42 @@ final class Certificate
      * Useful for Let's Encrypt API.
      *
      * @see https://letsencrypt.github.io/acme-spec/#rfc.section.6.6
-     *
-     * @return string
      */
-    public function getRawCsr()
+    public function getRawCsr(): string
     {
         preg_match('~REQUEST-----(.*)-----END~s', $this->csr, $matches);
 
         return base64_decode($matches[1]);
     }
 
-    /**
-     * @param string $csr
-     */
-    public function setCsr($csr)
+    public function setCsr(string $csr): void
     {
         $this->csr = $csr;
     }
 
-    /**
-     * @return string
-     */
-    public function getFullchain()
+    public function getFullchain(): string
     {
         return $this->fullchain;
     }
 
-    /**
-     * @param string $fullchain
-     */
-    public function setFullchain($fullchain)
+    public function setFullchain(string $fullchain): void
     {
         $this->fullchain = trim($fullchain);
 
         $fullchainSplit = preg_split(
-            "/(-)\\n+(-)/",
+            '/(-)\\n+(-)/',
             $this->fullchain
         );
         $this->setCert(trim($fullchainSplit[0]).'-');
         $this->setChain('-'.trim($fullchainSplit[1]));
     }
 
-    /**
-     * @return string
-     */
-    public function getCert()
+    public function getCert(): string
     {
         return $this->cert;
     }
 
-    /**
-     * @param string $cert
-     */
-    public function setCert($cert)
+    public function setCert(string $cert): void
     {
         $this->cert = $cert;
 
@@ -195,18 +174,12 @@ final class Certificate
         $this->validTo->setTimestamp($res['validTo_time_t']);
     }
 
-    /**
-     * @return string
-     */
-    public function getChain()
+    public function getChain(): string
     {
         return $this->chain;
     }
 
-    /**
-     * @param string $chain
-     */
-    public function setChain($chain)
+    public function setChain(string $chain): void
     {
         $this->chain = $chain;
     }
@@ -214,7 +187,7 @@ final class Certificate
     /**
      * @return \DateTime
      */
-    public function getValidFrom()
+    public function getValidFrom(): ?\DateTime
     {
         return $this->validFrom;
     }
@@ -222,7 +195,7 @@ final class Certificate
     /**
      * @return \DateTime
      */
-    public function getValidTo()
+    public function getValidTo(): ?\DateTime
     {
         return $this->validTo;
     }

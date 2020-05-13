@@ -1,5 +1,16 @@
 <?php
 
+declare(strict_types=1);
+
+/*
+ * This file is part of the Nexylan packages.
+ *
+ * (c) Nexylan SAS <contact@nexylan.com>
+ *
+ * For the full copyright and license information, please view the LICENSE
+ * file that was distributed with this source code.
+ */
+
 namespace Nexy\NexyCrypt\Authorization\Challenge;
 
 use Doctrine\Common\Collections\ArrayCollection;
@@ -10,7 +21,7 @@ use Doctrine\Common\Collections\ArrayCollection;
 class ChallengeCollection extends ArrayCollection
 {
     /**
-     * @return Http01Challenge|null|false
+     * @return Http01Challenge|false|null
      */
     public function getHttp01()
     {
@@ -20,7 +31,7 @@ class ChallengeCollection extends ArrayCollection
     }
 
     /**
-     * @return Dns01Challenge|null|false
+     * @return Dns01Challenge|false|null
      */
     public function getDns01()
     {
@@ -30,7 +41,7 @@ class ChallengeCollection extends ArrayCollection
     }
 
     /**
-     * @return TlsSni01Challenge|null|false
+     * @return TlsSni01Challenge|false|null
      */
     public function getTlsSni01()
     {
@@ -42,7 +53,7 @@ class ChallengeCollection extends ArrayCollection
     /**
      * @param string $type
      *
-     * @return ChallengeInterface|null|false
+     * @return ChallengeInterface|false|null
      */
     public function getOfType($type)
     {

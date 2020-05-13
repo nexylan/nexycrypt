@@ -1,8 +1,17 @@
 <?php
 
-namespace Nexy\NexyCrypt\Exception;
+declare(strict_types=1);
 
-use Exception;
+/*
+ * This file is part of the Nexylan packages.
+ *
+ * (c) Nexylan SAS <contact@nexylan.com>
+ *
+ * For the full copyright and license information, please view the LICENSE
+ * file that was distributed with this source code.
+ */
+
+namespace Nexy\NexyCrypt\Exception;
 
 /**
  * @author Sullivan Senechal <soullivaneuh@gmail.com>
@@ -19,13 +28,7 @@ class AcmeApiException extends AcmeException
      */
     private $details;
 
-    /**
-     * @param string         $type
-     * @param int            $details
-     * @param Exception      $status
-     * @param Exception|null $previous
-     */
-    public function __construct($type, $details, $status, Exception $previous = null)
+    public function __construct(string $type, string $details, int $status, ?\Exception $previous = null)
     {
         $this->type = $type;
         $this->details = $details;
@@ -33,18 +36,12 @@ class AcmeApiException extends AcmeException
         parent::__construct(sprintf('[%s] %s', $this->type, $this->details), $status, $previous);
     }
 
-    /**
-     * @return string
-     */
-    public function getType()
+    public function getType(): string
     {
         return $this->type;
     }
 
-    /**
-     * @return string
-     */
-    public function getDetails()
+    public function getDetails(): string
     {
         return $this->details;
     }

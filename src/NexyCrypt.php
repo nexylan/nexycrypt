@@ -1,5 +1,16 @@
 <?php
 
+declare(strict_types=1);
+
+/*
+ * This file is part of the Nexylan packages.
+ *
+ * (c) Nexylan SAS <contact@nexylan.com>
+ *
+ * For the full copyright and license information, please view the LICENSE
+ * file that was distributed with this source code.
+ */
+
 namespace Nexy\NexyCrypt;
 
 use Base64Url\Base64Url;
@@ -42,7 +53,7 @@ class NexyCrypt implements LoggerAwareInterface
     private $endpoint = 'https://acme-v02.api.letsencrypt.org';
 
     /**
-     * @var PrivateKey
+     * @var PrivateKey|null
      */
     private $privateKey = null;
 
@@ -75,12 +86,7 @@ class NexyCrypt implements LoggerAwareInterface
      */
     private $logger;
 
-    /**
-     * @param string $privateKeyPath
-     * @param string $endpoint
-     * @param HttpClient|null $httpClient
-     */
-    public function __construct($privateKeyPath = null, $endpoint = null, HttpClient $httpClient = null)
+    public function __construct(?string $privateKeyPath = null, ?string $endpoint = null, ?HttpClient $httpClient = null)
     {
         $this->privateKeyPath = null === $privateKeyPath
             ? sys_get_temp_dir().'/nexycrypt.private_key'
@@ -113,7 +119,7 @@ class NexyCrypt implements LoggerAwareInterface
     /**
      * {@inheritdoc}
      */
-    public function setLogger(LoggerInterface $logger)
+    public function setLogger(LoggerInterface $logger): void
     {
         $this->logger = $logger;
     }
@@ -121,7 +127,7 @@ class NexyCrypt implements LoggerAwareInterface
     /**
      * Generates or read privates key and starts registration.
      */
-    public function register()
+    public function register(): void
     {
         $response = $this->signedPostRequest('acme/new-acct', [
             'termsOfServiceAgreed' => true,
@@ -131,10 +137,8 @@ class NexyCrypt implements LoggerAwareInterface
 
     /**
      * @param string[] $domains
-     *
-     * @return Order
      */
-    public function order(array $domains)
+    public function order(array $domains): Order
     {
         $response = $this->signedPostRequest('acme/new-order', [
             'identifiers' => array_map(function ($domain) {
@@ -148,10 +152,7 @@ class NexyCrypt implements LoggerAwareInterface
         return $this->getOrder(json_decode((string) $response->getBody(), true));
     }
 
-    /**
-     * @param ChallengeInterface $challenge
-     */
-    public function verifyChallenge(ChallengeInterface $challenge)
+    public function verifyChallenge(ChallengeInterface $challenge): void
     {
         $this->signedPostRequest($challenge->getUrl(), [
             'resource' => 'challenge',
@@ -164,7 +165,7 @@ class NexyCrypt implements LoggerAwareInterface
         do {
             // The authorization was already fetched once. Wait a bit before retrying.
             // @see https://tools.ietf.org/html/rfc8555#section-7.5.1
-            if ($authorization !== null) {
+            if (null !== $authorization) {
                 sleep(1);
             }
             $response = $this->signedPostRequest($this->links['up']);
@@ -185,13 +186,10 @@ class NexyCrypt implements LoggerAwareInterface
 
     /**
      * Call the finalize URL of the order, then download and fill the certificate.
-     *
-     * @param Order $order
-     * @param Certificate $certificate
      */
-    public function finalize(Order $order, Certificate $certificate)
+    public function finalize(Order $order, Certificate $certificate): void
     {
-        $finalizeData = \json_decode((string) $this->signedPostRequest($order->getFinalizeUrl(), [
+        $finalizeData = json_decode((string) $this->signedPostRequest($order->getFinalizeUrl(), [
             'csr' => Base64Url::encode($certificate->getRawCsr()),
         ])->getBody(), true);
 
@@ -204,10 +202,8 @@ class NexyCrypt implements LoggerAwareInterface
      * Generates private, public key and CSR for provided domains.
      *
      * @param string[] $domains
-     *
-     * @return Certificate
      */
-    public function generateCertificate(array $domains)
+    public function generateCertificate(array $domains): Certificate
     {
         $certificate = new Certificate();
         $privateKey = openssl_pkey_new();
@@ -251,10 +247,7 @@ subjectAltName = '.$san.'
         return $certificate;
     }
 
-    /**
-     * @return PrivateKey
-     */
-    public function getPrivateKey()
+    public function getPrivateKey(): PrivateKey
     {
         if (null === $this->privateKey) {
             $this->privateKey = new PrivateKey($this->privateKeyPath);
@@ -263,14 +256,7 @@ subjectAltName = '.$san.'
         return $this->privateKey;
     }
 
-    /**
-     * @param string $uri
-     * @param array  $payload
-     * @param bool   $useKeyHeader
-     *
-     * @return ResponseInterface
-     */
-    private function signedPostRequest($uri, array $payload = null, $useKeyHeader = false)
+    private function signedPostRequest(string $uri, array $payload = null, bool $useKeyHeader = false): ResponseInterface
     {
         $header = [
             'alg' => 'RS256',
@@ -298,21 +284,16 @@ subjectAltName = '.$san.'
             'payload' => $payload64,
             'signature' => $signed64,
         ], [
-            'Content-Type' => 'application/jose+json'
+            'Content-Type' => 'application/jose+json',
         ]);
     }
 
     /**
      * We need to encapsulate httpClient request method to save some needed data.
      *
-     * @param string $method
-     * @param string $uri
-     * @param array  $jsonData
      * @param string[] $headers
-     *
-     * @return ResponseInterface
      */
-    private function request($method, $uri, array $jsonData = null, array $headers = [])
+    private function request(string $method, string $uri, array $jsonData = null, array $headers = []): ResponseInterface
     {
         $uri = $this->normalizeUri($uri);
         $loggerKey = "[{$method}] {$uri}";
@@ -321,7 +302,7 @@ subjectAltName = '.$san.'
                 $method,
                 $uri,
                 $headers,
-                $jsonData ? \json_encode($jsonData) : null
+                $jsonData ? json_encode($jsonData) : null
             );
 
             $this->logger->info($loggerKey, (array) json_decode((string) $response->getBody(), true));
@@ -355,7 +336,7 @@ subjectAltName = '.$san.'
         }
     }
 
-    private function updateHeaders(ResponseInterface $response)
+    private function updateHeaders(ResponseInterface $response): void
     {
         $this->lastResponseHeaders = $response->getHeaders();
 
@@ -367,10 +348,7 @@ subjectAltName = '.$san.'
         }
     }
 
-    /**
-     * @return string
-     */
-    private function getLastNonce()
+    private function getLastNonce(): string
     {
         if (!isset($this->lastResponseHeaders['Replay-Nonce'][0])) {
             $this->request('HEAD', 'acme/new-nonce');
@@ -379,7 +357,7 @@ subjectAltName = '.$san.'
         return $this->lastResponseHeaders['Replay-Nonce'][0];
     }
 
-    private function getOrder(array $data, $withAuthorizations = true)
+    private function getOrder(array $data, bool $withAuthorizations = true): Order
     {
         $order = new Order(
             $data['status'],
@@ -409,21 +387,14 @@ subjectAltName = '.$san.'
         return $order;
     }
 
-    /**
-     * @param array $data
-     * @param bool  $withChallenges
-     *
-     * @return Authorization
-     */
-    private function getAuthorization(array $data, $withChallenges = true)
+    private function getAuthorization(array $data, bool $withChallenges = true): Authorization
     {
         $authorization = new Authorization(
-            array_key_exists('wildcard', $data) ? $data['wildcard'] : false
+            new Identifier($data['identifier']['type'], $data['identifier']['value']),
+            $data['status'],
+            new \DateTime(substr($data['expires'], 0, -4)),
+            \array_key_exists('wildcard', $data) ? $data['wildcard'] : false
         );
-
-        $authorization->setIdentifier(new Identifier($data['identifier']['type'], $data['identifier']['value']));
-        $authorization->setStatus($data['status']);
-        $authorization->setExpires(new \DateTime(substr($data['expires'], 0, -4)));
 
         if (true === $withChallenges) {
             foreach ($data['challenges'] as $challengeData) {
@@ -439,12 +410,8 @@ subjectAltName = '.$san.'
 
     /**
      * Remove the endpoint if present and normalize slashes.
-     *
-     * @param string $uri
-     *
-     * @return string
      */
-    private function normalizeUri($uri)
+    private function normalizeUri(string $uri): string
     {
         return '/'.ltrim(str_replace($this->endpoint, '', $uri), '/');
     }

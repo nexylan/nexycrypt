@@ -1,6 +1,18 @@
 <?php
 
+declare(strict_types=1);
+
+/*
+ * This file is part of the Nexylan packages.
+ *
+ * (c) Nexylan SAS <contact@nexylan.com>
+ *
+ * For the full copyright and license information, please view the LICENSE
+ * file that was distributed with this source code.
+ */
+
 namespace Nexy\NexyCrypt\Authorization\Challenge;
+
 use Nexy\NexyCrypt\Authorization\Error;
 
 /**
@@ -8,62 +20,19 @@ use Nexy\NexyCrypt\Authorization\Error;
  */
 interface ChallengeInterface
 {
-    const HTTP_01 = 'http-01';
-    const DNS_01 = 'dns-01';
-    const TLS_SNI_01 = 'tls-sni-01';
+    public const HTTP_01 = 'http-01';
+    public const DNS_01 = 'dns-01';
+    public const TLS_SNI_01 = 'tls-sni-01';
 
-    /**
-     * @return string
-     */
-    public function getType();
+    public function getType(): string;
 
-    /**
-     * @return string|null
-     */
-    public function getStatus();
+    public function getStatus(): string;
 
-    /**
-     * @param string $status
-     */
-    public function setStatus($status);
+    public function getUrl(): string;
 
-    /**
-     * @return string
-     */
-    public function getUrl();
+    public function getToken(): string;
 
-    /**
-     * @param string $uri
-     */
-    public function setUrl($uri);
+    public function getAuthorizationKey(): string;
 
-    /**
-     * @return string
-     */
-    public function getToken();
-
-    /**
-     * @param string $token
-     */
-    public function setToken($token);
-
-    /**
-     * @return string
-     */
-    public function getAuthorizationKey();
-
-    /**
-     * @param string $authorizationKey
-     */
-    public function setAuthorizationKey($authorizationKey);
-
-    /**
-     * @return Error|null
-     */
-    public function getError();
-
-    /**
-     * @param Error|null
-     */
-    public function setError($error);
+    public function getError(): ?Error;
 }

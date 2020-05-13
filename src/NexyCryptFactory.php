@@ -1,5 +1,16 @@
 <?php
 
+declare(strict_types=1);
+
+/*
+ * This file is part of the Nexylan packages.
+ *
+ * (c) Nexylan SAS <contact@nexylan.com>
+ *
+ * For the full copyright and license information, please view the LICENSE
+ * file that was distributed with this source code.
+ */
+
 namespace Nexy\NexyCrypt;
 
 use Http\Client\HttpClient;
@@ -32,34 +43,21 @@ final class NexyCryptFactory
      */
     private $instances = [];
 
-    /**
-     * @param string|null $defaultPrivateKeyPath
-     * @param string|null $endpoint
-     * @param HttpClient|null $httClient
-     */
-    public function __construct($defaultPrivateKeyPath = null, $endpoint = null, HttpClient $httClient = null)
+    public function __construct(?string $defaultPrivateKeyPath = null, ?string $endpoint = null, ?HttpClient $httClient = null)
     {
         $this->defaultPrivateKeyPath = $defaultPrivateKeyPath;
         $this->endpoint = $endpoint;
         $this->httClient = $httClient;
     }
 
-    /**
-     * @param LoggerInterface $logger
-     */
-    public function setLogger($logger)
+    public function setLogger(LoggerInterface $logger): void
     {
         $this->logger = $logger;
     }
 
-    /**
-     * @param string|null $privateKeyPath
-     *
-     * @return NexyCrypt
-     */
-    public function getInstance($privateKeyPath = null)
+    public function getInstance(?string $privateKeyPath = null): NexyCrypt
     {
-        if (!array_key_exists($privateKeyPath, $this->instances)) {
+        if (!\array_key_exists($privateKeyPath, $this->instances)) {
             $this->instances[$privateKeyPath] = new NexyCrypt(
                 null !== $privateKeyPath ? $privateKeyPath : $this->defaultPrivateKeyPath,
                 $this->endpoint,

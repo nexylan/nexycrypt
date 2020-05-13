@@ -2,8 +2,16 @@
 
 declare(strict_types=1);
 
-namespace Nexy\NexyCrypt\Authorization;
+/*
+ * This file is part of the Nexylan packages.
+ *
+ * (c) Nexylan SAS <contact@nexylan.com>
+ *
+ * For the full copyright and license information, please view the LICENSE
+ * file that was distributed with this source code.
+ */
 
+namespace Nexy\NexyCrypt\Authorization;
 
 final class Error
 {
@@ -22,12 +30,7 @@ final class Error
      */
     private $status;
 
-    /**
-     * @param string $type
-     * @param string $detail
-     * @param int $status
-     */
-    public function __construct($type, $detail, $status)
+    public function __construct(string $type, string $detail, int $status)
     {
         $this->type = $type;
         $this->detail = $detail;
@@ -39,26 +42,17 @@ final class Error
         return "[{$this->type}] {$this->detail}";
     }
 
-    /**
-     * @return string
-     */
-    public function getType()
+    public function getType(): string
     {
         return $this->type;
     }
 
-    /**
-     * @return string
-     */
-    public function getDetail()
+    public function getDetail(): string
     {
         return $this->detail;
     }
 
-    /**
-     * @return int
-     */
-    public function getStatus()
+    public function getStatus(): int
     {
         return $this->status;
     }

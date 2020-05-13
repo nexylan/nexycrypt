@@ -1,5 +1,16 @@
 <?php
 
+declare(strict_types=1);
+
+/*
+ * This file is part of the Nexylan packages.
+ *
+ * (c) Nexylan SAS <contact@nexylan.com>
+ *
+ * For the full copyright and license information, please view the LICENSE
+ * file that was distributed with this source code.
+ */
+
 namespace Nexy\NexyCrypt\Authorization;
 
 /**
@@ -17,28 +28,18 @@ final class Identifier
      */
     private $value;
 
-    /**
-     * @param string $type
-     * @param string $value
-     */
-    public function __construct($type, $value)
+    public function __construct(string $type, string $value)
     {
         $this->type = $type;
         $this->value = $value;
     }
 
-    /**
-     * @return string
-     */
-    public function getType()
+    public function getType(): string
     {
         return $this->type;
     }
 
-    /**
-     * @return string
-     */
-    public function getValue()
+    public function getValue(): string
     {
         return $this->value;
     }
