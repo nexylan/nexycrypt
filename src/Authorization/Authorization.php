@@ -53,6 +53,18 @@ final class Authorization
     }
 
     /**
+     * @return string
+     */
+    public function getIdentifierDisplayName()
+    {
+        if ($this->isWildcard()) {
+            return '*.'.$this->getIdentifier()->getValue();
+        }
+
+        return $this->getIdentifier()->getValue();
+    }
+
+    /**
      * @param Identifier $identifier
      */
     public function setIdentifier($identifier)
