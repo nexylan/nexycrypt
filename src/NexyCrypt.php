@@ -174,11 +174,11 @@ class NexyCrypt implements LoggerAwareInterface
                 continue;
             }
 
-            foreach ($authorization->getChallenges() as $authChallenge) {
-                if ($authChallenge->getError()) {
-                    throw new AcmeException((string) $authChallenge->getError(), $authChallenge->getError()->getStatus());
-                }
+            $authChallenge = $authorization->getChallenges()->getOfType($challenge->getType());
+            if ($authChallenge->getError()) {
+                throw new AcmeException((string) $authChallenge->getError(), $authChallenge->getError()->getStatus());
             }
+
             throw new AcmeException('Invalid challenge.');
         } while ('valid' !== $authorization->getStatus());
     }
