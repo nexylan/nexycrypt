@@ -162,7 +162,11 @@ class NexyCrypt implements LoggerAwareInterface
 
         $authorization = null;
         do {
-            usleep(100);
+            // The authorization was already fetched once. Wait a bit before retrying.
+            // @see https://tools.ietf.org/html/rfc8555#section-7.5.1
+            if ($authorization !== null) {
+                sleep(1);
+            }
             $response = $this->signedPostRequest($this->links['up']);
             $authorization = $this->getAuthorization(json_decode((string) $response->getBody(), true), true);
 
