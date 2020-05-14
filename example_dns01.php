@@ -51,7 +51,7 @@ try {
         $allGood = true;
         foreach ($order->getAuthorizations() as $authorization) {
             $challenge = $authorization->getChallenges()->getDns01();
-            $client->verifyChallenge($challenge);
+            $client->verifyChallenge($order, $challenge);
         }
 
         if (!$allGood) {
