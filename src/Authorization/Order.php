@@ -33,7 +33,9 @@ final class Order
     private $identifiers = [];
 
     /**
-     * @var Authorization[]
+     * Authorization list, the url is the key.
+     *
+     * @var array<string, Authorization>
      */
     private $authorizations = [];
 
@@ -81,9 +83,9 @@ final class Order
         return $this->authorizations;
     }
 
-    public function addAuthorization(Authorization $authorization): void
+    public function addAuthorization(string $url, Authorization $authorization): void
     {
-        $this->authorizations[] = $authorization;
+        $this->authorizations[$url] = $authorization;
     }
 
     public function getFinalizeUrl(): string

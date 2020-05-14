@@ -152,7 +152,7 @@ class NexyCrypt implements LoggerAwareInterface
         return $this->getOrder(json_decode((string) $response->getBody(), true));
     }
 
-    public function verifyChallenge(ChallengeInterface $challenge): void
+    public function verifyChallenge(Order $order, ChallengeInterface $challenge): void
     {
         $this->signedPostRequest($challenge->getUrl(), [
             'resource' => 'challenge',
@@ -168,8 +168,10 @@ class NexyCrypt implements LoggerAwareInterface
             if (null !== $authorization) {
                 sleep(1);
             }
-            $response = $this->signedPostRequest($this->links['up']);
+            $authorizationUrl = $this->links['up'];
+            $response = $this->signedPostRequest($authorizationUrl);
             $authorization = $this->getAuthorization(json_decode((string) $response->getBody(), true), true);
+            $order->addAuthorization($authorizationUrl, $authorization);
 
             if ('invalid' !== $authorization->getStatus()) {
                 continue;
@@ -374,6 +376,7 @@ subjectAltName = '.$san.'
         if ($withAuthorizations) {
             foreach ($data['authorizations'] as $authorizationUrl) {
                 $order->addAuthorization(
+                    $authorizationUrl,
                     $this->getAuthorization(
                         json_decode(
                             (string) $this->signedPostRequest($authorizationUrl)->getBody(),
