@@ -151,11 +151,13 @@ final class Certificate
         $this->fullchain = trim($fullchain);
 
         $fullchainSplit = preg_split(
-            '/(-)\\n+(-)/',
-            $this->fullchain
+            '/(-----BEGIN CERTIFICATE-----[\n\S]+-----END CERTIFICATE-----\n)\n/',
+            $this->fullchain,
+            -1,
+            PREG_SPLIT_NO_EMPTY | PREG_SPLIT_DELIM_CAPTURE
         );
-        $this->setCert(trim($fullchainSplit[0]).'-');
-        $this->setChain('-'.trim($fullchainSplit[1]));
+        $this->setCert($fullchainSplit[0]);
+        $this->setChain($fullchainSplit[1]);
     }
 
     public function getCert(): string
