@@ -156,8 +156,8 @@ final class Certificate
             -1,
             PREG_SPLIT_NO_EMPTY | PREG_SPLIT_DELIM_CAPTURE
         );
-        $this->setCert($fullchainSplit[0]);
-        $this->setChain($fullchainSplit[1]);
+        $this->setCert(array_shift($fullchainSplit));
+        $this->setChain(implode("\n", $fullchainSplit));
     }
 
     public function getCert(): string
