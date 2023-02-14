@@ -326,7 +326,7 @@ subjectAltName = '.$san.'
 
             $this->logger->error($loggerKey, $exceptionData);
 
-            throw new AcmeApiException($exceptionData['type'], $exceptionData['detail'], $exceptionData['status']);
+            throw new AcmeApiException($exceptionData['type'], $exceptionData['detail'], $exceptionData['status'] ?? 0);
         } catch (Exception $e) {
             $this->logger->error($loggerKey, ['error' => $e->getMessage()]);
 
