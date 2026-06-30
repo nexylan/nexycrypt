@@ -30,7 +30,7 @@ interface ChallengeInterface
 
     public function getUrl(): string;
 
-    public function getToken(): string;
+    public function getToken(): ?string;
 
     public function getAuthorizationKey(): string;
 
