@@ -31,7 +31,7 @@ abstract class AbstractChallenge implements ChallengeInterface
     protected $url;
 
     /**
-     * @var string
+     * @var string|null
      */
     protected $token;
 
@@ -45,7 +45,7 @@ abstract class AbstractChallenge implements ChallengeInterface
      */
     protected $error;
 
-    final public function __construct(string $status, string $url, string $token, string $authorizationKey, ?Error $error)
+    final public function __construct(string $status, string $url, ?string $token, string $authorizationKey, ?Error $error)
     {
         $this->status = $status;
         $this->url = $url;
@@ -64,7 +64,7 @@ abstract class AbstractChallenge implements ChallengeInterface
         return $this->url;
     }
 
-    public function getToken(): string
+    public function getToken(): ?string
     {
         return $this->token;
     }

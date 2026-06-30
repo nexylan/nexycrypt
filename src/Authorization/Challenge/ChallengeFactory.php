@@ -38,7 +38,7 @@ final class ChallengeFactory
     {
         $status = $data['status'] ?? null;
         $url = $data['url'];
-        $token = $data['token'];
+        $token = $data['token'] ?? null;
         $header = [
             // need to be in precise order!
             'e' => Base64Url::encode($privateKey->getDetails()['rsa']['e']),
